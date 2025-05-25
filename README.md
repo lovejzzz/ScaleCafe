@@ -2,7 +2,7 @@
 
 ## A Musical Scale Practice Application with Voice Leading
 
-![Scale Cafe Logo](https://img.shields.io/badge/🎵-Scale%20Cafe-orange)
+![Scale Cafe Logo](https://lovejzzz.github.io/ScaleCafe/)
 
 ## Overview
 

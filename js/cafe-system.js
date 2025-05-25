@@ -36,22 +36,28 @@ class CafeSystem {
         // Available orders
         this.availableOrders = [];
         
-        // Dish names from the name.md file
+        // Dish names from the name.md file (updated with musically accurate enharmonic spellings)
         this.dishNames = {
             major: {
-                'C': 'Latte', 'C#': 'Espresso', 'D': 'Cappuccino', 'Eb': 'Mocha',
+                'C': 'Latte', 'Db': 'Espresso', 'D': 'Cappuccino', 'Eb': 'Mocha',
                 'E': 'Brew', 'F': 'Americano', 'F#': 'Macchiato', 'G': 'Flatwhite',
-                'Ab': 'Cortado', 'A': 'Pour-over', 'Bb': 'Nitro', 'B': 'Affogato'
+                'Ab': 'Cortado', 'A': 'Pour-over', 'Bb': 'Nitro', 'B': 'Affogato',
+                // Enharmonic equivalents for compatibility
+                'C#': 'Espresso', 'D#': 'Mocha', 'Gb': 'Macchiato', 'G#': 'Cortado', 'A#': 'Nitro'
             },
             harmonicMinor: {
-                'C': 'Croissant', 'C#': 'Bagel', 'D': 'Scone', 'Eb': 'Muffin',
+                'C': 'Croissant', 'Db': 'Bagel', 'D': 'Scone', 'Eb': 'Muffin',
                 'E': 'Danish', 'F': 'Biscuit', 'F#': 'Tart', 'G': 'Brioche',
-                'Ab': 'Strudel', 'A': 'Roll', 'Bb': 'Breadstick', 'B': 'Pastry'
+                'Ab': 'Strudel', 'A': 'Roll', 'Bb': 'Breadstick', 'B': 'Pastry',
+                // Enharmonic equivalents for compatibility
+                'C#': 'Bagel', 'D#': 'Muffin', 'Gb': 'Tart', 'G#': 'Strudel', 'A#': 'Breadstick'
             },
             melodicMinor: {
-                'C': 'Popcorn', 'C#': 'Pretzel', 'D': 'Biscotti', 'Eb': 'Cookie',
+                'C': 'Popcorn', 'Db': 'Pretzel', 'D': 'Biscotti', 'Eb': 'Cookie',
                 'E': 'Trailmix', 'F': 'Granola', 'F#': 'Brownie', 'G': 'Cracker',
-                'Ab': 'Muffin', 'A': 'Churro', 'Bb': 'Donut', 'B': 'Macaron'
+                'Ab': 'Muffin', 'A': 'Churro', 'Bb': 'Donut', 'B': 'Macaron',
+                // Enharmonic equivalents for compatibility
+                'C#': 'Pretzel', 'D#': 'Cookie', 'Gb': 'Brownie', 'G#': 'Muffin', 'A#': 'Donut'
             }
         };
         
@@ -220,57 +226,67 @@ class CafeSystem {
      * @returns {Array} Array of notes in the scale
      */
     generateCorrectScale(scaleType, key) {
-        // Use the exact scales from scales.md with proper enharmonic spelling
+        // Use the exact scales from Scale-Enharmonic.md with proper enharmonic spelling
         const scales = {
             major: {
                 'C': ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'],
-                'C#': ['C#', 'D#', 'E#', 'F#', 'G#', 'A#', 'B#', 'C#'],
+                'Db': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
                 'D': ['D', 'E', 'F#', 'G', 'A', 'B', 'C#', 'D'],
                 'Eb': ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D', 'Eb'],
                 'E': ['E', 'F#', 'G#', 'A', 'B', 'C#', 'D#', 'E'],
                 'F': ['F', 'G', 'A', 'Bb', 'C', 'D', 'E', 'F'],
-                'F#': ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#', 'F#'],
+                'F#': ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'F', 'F#'],
                 'G': ['G', 'A', 'B', 'C', 'D', 'E', 'F#', 'G'],
                 'Ab': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G', 'Ab'],
                 'A': ['A', 'B', 'C#', 'D', 'E', 'F#', 'G#', 'A'],
                 'Bb': ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A', 'Bb'],
-                'B': ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#', 'B']
+                'B': ['B', 'C#', 'D#', 'E', 'F#', 'G#', 'A#', 'B'],
+                // Enharmonic equivalents for compatibility
+                'C#': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Major
+                'D#': ['Eb', 'F', 'G', 'Ab', 'Bb', 'C', 'D', 'Eb'], // Use Eb Major
+                'Gb': ['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'F', 'F#'], // Use F# Major
+                'G#': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Major
+                'A#': ['Bb', 'C', 'D', 'Eb', 'F', 'G', 'A', 'Bb']  // Use Bb Major
             },
             harmonicMinor: {
-                'A': ['A', 'B', 'C', 'D', 'E', 'F', 'G#', 'A'],
-                'E': ['E', 'F#', 'G', 'A', 'B', 'C', 'D#', 'E'],
-                'B': ['B', 'C#', 'D', 'E', 'F#', 'G', 'A#', 'B'],
-                'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E#', 'F#'],
-                'C#': ['C#', 'D#', 'E', 'F#', 'G#', 'A', 'B#', 'C#'],
-                'G#': ['G#', 'A#', 'B', 'C#', 'D#', 'E', 'F##', 'G#'],
-                'D#': ['D#', 'E#', 'F#', 'G#', 'A#', 'B', 'C##', 'D#'],
-                'A#': ['A#', 'B#', 'C#', 'D#', 'E#', 'F#', 'G##', 'A#'],
-                'D': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C#', 'D'],
-                'G': ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F#', 'G'],
                 'C': ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'B', 'C'],
+                'Db': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
+                'D': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C#', 'D'],
+                'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'],
+                'E': ['E', 'F#', 'G', 'A', 'B', 'C', 'D#', 'E'],
                 'F': ['F', 'G', 'Ab', 'Bb', 'C', 'Db', 'E', 'F'],
-                // Add common enharmonic equivalents for game keys
-                'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb'], // Bb harmonic minor
-                'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'Cb', 'D', 'Eb'], // Eb harmonic minor
-                'Ab': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'Fb', 'G', 'Ab']  // Ab harmonic minor
+                'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E', 'F#'],
+                'G': ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F#', 'G'],
+                'Ab': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F', 'G', 'Ab'],
+                'A': ['A', 'B', 'C', 'D', 'E', 'F', 'G#', 'A'],
+                'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb'],
+                'B': ['B', 'C#', 'D', 'E', 'F#', 'G', 'A#', 'B'],
+                // Enharmonic equivalents for compatibility
+                'C#': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Harmonic Minor
+                'D#': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'], // Use Eb Harmonic Minor
+                'Gb': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E', 'F#'], // Use F# Harmonic Minor
+                'G#': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Harmonic Minor
+                'A#': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb']  // Use Bb Harmonic Minor
             },
             melodicMinor: {
-                'A': ['A', 'B', 'C', 'D', 'E', 'F#', 'G#', 'A'],
-                'E': ['E', 'F#', 'G', 'A', 'B', 'C#', 'D#', 'E'],
-                'B': ['B', 'C#', 'D', 'E', 'F#', 'G#', 'A#', 'B'],
-                'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D#', 'E#', 'F#'],
-                'C#': ['C#', 'D#', 'E', 'F#', 'G#', 'A#', 'B#', 'C#'],
-                'G#': ['G#', 'A#', 'B', 'C#', 'D#', 'E#', 'F##', 'G#'],
-                'D#': ['D#', 'E#', 'F#', 'G#', 'A#', 'B#', 'C##', 'D#'],
-                'A#': ['A#', 'B#', 'C#', 'D#', 'E#', 'F##', 'G##', 'A#'],
-                'D': ['D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D'],
-                'G': ['G', 'A', 'Bb', 'C', 'D', 'E', 'F#', 'G'],
                 'C': ['C', 'D', 'Eb', 'F', 'G', 'A', 'B', 'C'],
+                'Db': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
+                'D': ['D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D'],
+                'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'],
+                'E': ['E', 'F#', 'G', 'A', 'B', 'C#', 'D#', 'E'],
                 'F': ['F', 'G', 'Ab', 'Bb', 'C', 'D', 'E', 'F'],
-                // Add common enharmonic equivalents for game keys
-                'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'G', 'A', 'Bb'], // Bb melodic minor
-                'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'], // Eb melodic minor
-                'Ab': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F', 'G', 'Ab']  // Ab melodic minor
+                'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D#', 'F', 'F#'],
+                'G': ['G', 'A', 'Bb', 'C', 'D', 'E', 'F#', 'G'],
+                'Ab': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G', 'Ab'],
+                'A': ['A', 'B', 'C', 'D', 'E', 'F#', 'G#', 'A'],
+                'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'G', 'A', 'Bb'],
+                'B': ['B', 'C#', 'D', 'E', 'F#', 'G#', 'A#', 'B'],
+                // Enharmonic equivalents for compatibility
+                'C#': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Melodic Minor
+                'D#': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'], // Use Eb Melodic Minor
+                'Gb': ['F#', 'G#', 'A', 'B', 'C#', 'D#', 'F', 'F#'], // Use F# Melodic Minor
+                'G#': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Melodic Minor
+                'A#': ['Bb', 'C', 'Db', 'Eb', 'F', 'G', 'A', 'Bb']  // Use Bb Melodic Minor
             }
         };
         
@@ -421,15 +437,15 @@ class CafeSystem {
     }
     
     /**
-     * Normalize key names to match the dish names
+     * Normalize key names to match the dish names (prefer flats for musically accurate spelling)
      */
     normalizeKey(key) {
         const keyMap = {
-            'C#': 'C#', 'Db': 'C#',
-            'D#': 'Eb', 'Eb': 'Eb',
-            'F#': 'F#', 'Gb': 'F#',
-            'G#': 'Ab', 'Ab': 'Ab',
-            'A#': 'Bb', 'Bb': 'Bb'
+            'C#': 'Db', 'Db': 'Db',  // Prefer Db over C#
+            'D#': 'Eb', 'Eb': 'Eb',  // Prefer Eb over D#
+            'F#': 'F#', 'Gb': 'F#',  // Keep F# (more common than Gb)
+            'G#': 'Ab', 'Ab': 'Ab',  // Prefer Ab over G#
+            'A#': 'Bb', 'Bb': 'Bb'   // Prefer Bb over A#
         };
         
         return keyMap[key] || key;
@@ -653,10 +669,6 @@ class CafeSystem {
         this.updateNoteSlot(this.currentPosition, noteName, isCorrect);
         
         if (isCorrect) {
-            // Always display the correct note when it's played correctly
-            const currentSlot = this.noteSlots[this.currentPosition];
-            currentSlot.textContent = noteName;
-            
             this.currentPosition++;
             this.updateProgressBar();
             
@@ -842,7 +854,7 @@ class CafeSystem {
             // For correct notes, remove all other classes and add correct
             slot.classList.remove('current', 'expected', 'wrong');
             slot.classList.add('correct', 'expected'); // Keep the expected class to maintain visibility
-            slot.textContent = noteName; // Always show the correct note that was played
+            slot.textContent = this.currentSequence[position]; // Always show the expected note from the sequence
             
             // DO NOT show the next note automatically - user should not see upcoming notes
             // The next note will only be revealed when they advance to that position
