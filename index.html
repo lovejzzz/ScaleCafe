@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scale Cafe - Musical Cooking Game</title>
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Preload critical fonts to prevent flash -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One:wght@400&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="cafe-closed">
     <!-- Cafe Header -->
     <header class="cafe-header">
         <div class="cafe-logo">
@@ -21,7 +26,7 @@
             </div>
             <div class="stat">
                 <span class="stat-icon">💰</span>
-                <span>Tips: <span id="player-coins">0</span></span>
+                <span>Coins: <span id="player-coins">0</span></span>
             </div>
         </div>
         <button id="menu-settings-btn" class="settings-btn">📋 Menu</button>
@@ -165,8 +170,12 @@
                     <span>XP: <span id="xp-reward">100</span></span>
                 </div>
                 <div class="reward">
+                    <span class="reward-icon">💵</span>
+                    <span>Sell: $<span id="sell-reward">0.00</span></span>
+                </div>
+                <div class="reward">
                     <span class="reward-icon">💰</span>
-                    <span>Tips: <span id="coin-reward">50</span></span>
+                    <span>Tips: $<span id="tip-reward">0.00</span></span>
                 </div>
             </div>
             <button id="continue-cooking-btn" class="continue-btn">Continue Cooking</button>
@@ -177,11 +186,14 @@
     <div class="midi-status" id="midi-status">
         <span>🎹 Piano: </span>
         <span id="midi-connection-status" class="midi-light clickable">●</span>
+        <span style="margin-left: 1rem;">🔊 Sound: </span>
+        <span id="sound-toggle" class="midi-light clickable" style="color: #32CD32;">●</span>
     </div>
 
     <!-- Load all scripts -->
     <script src="js/webmidi.min.js"></script>
     <script src="js/scale-engine.js"></script>
+    <script src="js/sound-manager.js"></script>
     <script src="js/midi-handler.js"></script>
     <script src="js/cafe-system.js"></script>
     <script src="js/main.js"></script>

@@ -1,3 +1,38 @@
+/* Font Loading Optimization - Prevent Flash */
+html {
+    font-display: swap;
+}
+
+/* Hide content until fonts are loaded to prevent flash */
+body {
+    visibility: hidden;
+}
+
+body.fonts-loaded {
+    visibility: visible;
+}
+
+/* Ensure initial state is set immediately - no transitions on page load */
+body:not(.cafe-opened):not(.cafe-opening) .order-board {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    z-index: 10;
+    margin: 0;
+    width: 400px;
+    max-width: 400px;
+    transition: none !important; /* Prevent any transition on initial load */
+}
+
+body:not(.cafe-opened):not(.cafe-opening) .cooking-station {
+    opacity: 0 !important;
+    transform: translateY(100px) !important;
+    pointer-events: none !important;
+    transition: none !important; /* Prevent any transition on initial load */
+    visibility: hidden !important; /* Completely hide to prevent any flash */
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -6,11 +41,12 @@
 }
 
 body {
-    font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #F4A460 100%);
     color: #2F1B14;
     min-height: 100vh;
     overflow-x: hidden;
+    padding-top: 80px; /* Account for fixed header */
 }
 
 /* Cafe Header */
@@ -23,10 +59,15 @@ body {
     align-items: center;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
     border-bottom: 3px solid #D2691E;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
 }
 
 .cafe-logo h1 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     font-size: 2rem;
     color: #8B4513;
     margin-bottom: 0.25rem;
@@ -82,6 +123,12 @@ body {
     padding: 2rem;
     max-width: 1400px;
     margin: 0 auto;
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Add top margin when cafe is opened to account for fixed order board */
+body.cafe-opened .cafe-main {
+    margin-top: 280px; /* Approximate height of order board + padding */
 }
 
 /* Order Board */
@@ -94,10 +141,74 @@ body {
     border: 2px solid rgba(210, 105, 30, 0.2);
     margin: 2rem auto;
     max-width: 1400px;
+    overflow: visible;
+    transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Initial state - Order board centered, cooking station hidden */
+body.cafe-closed .order-board {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+    z-index: 10;
+    margin: 0;
+    width: 400px;
+    max-width: 400px;
+    transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Re-enable transitions for cafe opening */
+}
+
+body.cafe-closed .cooking-station {
+    opacity: 0 !important;
+    transform: translateY(100px) !important;
+    pointer-events: none !important;
+    visibility: hidden !important; /* Completely hide initially */
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Re-enable transitions for cafe opening */
+}
+
+/* Transition and final state - Keep board fixed to avoid position jumping */
+body.cafe-opening .order-board,
+body.cafe-opened .order-board {
+    position: fixed;
+    top: 6rem; /* Account for fixed header */
+    left: 50%;
+    transform: translateX(-50%) scale(1);
+    z-index: 10;
+    margin: 0;
+    width: 100%;
+    max-width: 1400px;
+}
+
+/* Keep cooking station completely hidden during opening transition */
+body.cafe-opening .cooking-station {
+    opacity: 0 !important;
+    transform: translateY(100px) !important;
+    pointer-events: none !important;
+    visibility: hidden !important; /* Keep hidden until appearing class is added */
+}
+
+/* Cooking station appearing during progress bar - override all previous states */
+body.cafe-opening.cooking-station-appearing .cooking-station,
+body.cooking-station-appearing .cooking-station {
+    display: block !important; /* Show the element */
+    opacity: 0 !important; /* Start invisible */
+    transform: translateY(100px) !important; /* Start from below */
+    pointer-events: none !important; /* No interaction during animation */
+    visibility: visible !important;
+    /* Animate to visible state */
+    animation: cookingStationAppear 4s ease-out forwards !important;
+}
+
+body.cafe-opened .cooking-station {
+    display: block !important; /* Show the element */
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+    visibility: visible !important; /* Ensure visible in final state */
 }
 
 .order-board h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     color: #8B4513;
     margin-bottom: 1.5rem;
     text-align: center;
@@ -135,6 +246,89 @@ body {
     gap: 1rem;
     margin-bottom: 1.5rem;
     justify-content: center;
+    overflow: visible;
+    min-height: 180px; /* Reserve space for 4 orders */
+    align-items: flex-start;
+}
+
+.cafe-opening {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 150px;
+    gap: 1rem;
+}
+
+.open-cafe-btn {
+    background: linear-gradient(135deg, #8B4513, #D2691E);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(139, 69, 19, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.open-cafe-btn:hover {
+    background: linear-gradient(135deg, #A0522D, #CD853F);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(139, 69, 19, 0.4);
+}
+
+.open-cafe-btn:active {
+    transform: translateY(-1px);
+}
+
+.preparing-orders {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 150px;
+    gap: 1rem;
+    color: #8B4513;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.preparing-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    animation: pulse 1.5s infinite;
+}
+
+.progress-container {
+    width: 300px;
+    height: 20px;
+    background: rgba(255, 248, 220, 0.8);
+    border: 2px solid #DEB887;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #8B4513, #D2691E, #8B4513);
+    background-size: 200% 100%;
+    width: 0%;
+    border-radius: 13px;
+    transition: width 0.1s ease;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 .order-tickets::-webkit-scrollbar {
@@ -164,7 +358,15 @@ body {
     width: 280px;
     min-height: 150px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.order-ticket:not(.initial-load):not(.initial-slide-in) {
     transform: rotate(-1deg);
+}
+
+.order-ticket.initial-load {
+    transform: translateX(350px) scale(0.8) rotate(5deg) !important;
+    opacity: 0 !important;
 }
 
 .order-ticket::before {
@@ -194,11 +396,11 @@ body {
     transform: rotate(0deg) translateY(-5px);
 }
 
-.order-ticket:nth-child(even) {
+.order-ticket:nth-child(even):not(.initial-load):not(.initial-slide-in) {
     transform: rotate(1deg);
 }
 
-.order-ticket:nth-child(3n) {
+.order-ticket:nth-child(3n):not(.initial-load):not(.initial-slide-in) {
     transform: rotate(-2deg);
 }
 
@@ -237,7 +439,7 @@ body {
     font-size: 0.9rem;
 }
 
-.tip-amount {
+.sell-amount {
     color: #228B22;
     font-weight: 700;
 }
@@ -289,6 +491,9 @@ body {
     padding: 1.5rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(210, 105, 30, 0.2);
+    transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    /* Hide by default - only show when explicitly made visible */
+    display: none !important; /* Use display none for complete hiding */
 }
 
 .station-header {
@@ -296,7 +501,7 @@ body {
 }
 
 .station-header h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     color: #8B4513;
     margin-bottom: 1rem;
     font-size: 1.5rem;
@@ -474,7 +679,7 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .menu-content h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     color: #8B4513;
     margin-bottom: 2rem;
     text-align: center;
@@ -632,22 +837,23 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .modal.hidden {
-    display: none;
+display: none;
 }
 
 .modal-content {
     background: white;
+    padding: 1.5rem;
     border-radius: 20px;
-    padding: 2rem;
     text-align: center;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 95%;
+    width: 600px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
     border: 3px solid #D2691E;
 }
 
 .modal-content h2 {
-    font-family: 'Fredoka One', cursive;
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     color: #8B4513;
     margin-bottom: 1rem;
     font-size: 1.8rem;
@@ -662,20 +868,26 @@ body[data-difficulty="boss"] .gourmet-row {
 
 .rewards {
     display: flex;
-    justify-content: center;
-    gap: 2rem;
+    justify-content: space-between;
+    gap: 0.5rem;
     margin-bottom: 1.5rem;
+    flex-wrap: nowrap;
+    width: 100%;
 }
 
 .reward {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.2rem;
     background: #F4A460;
-    padding: 0.75rem 1rem;
-    border-radius: 15px;
+    padding: 0.4rem 0.2rem;
+    border-radius: 10px;
     font-weight: 700;
     color: #2F1B14;
+    flex: 1;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: 0.85rem;
 }
 
 .reward-icon {
@@ -683,7 +895,7 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .continue-btn {
-    background: #32CD32;
+    background: #8B4513;
     color: white;
     border: none;
     padding: 0.75rem 2rem;
@@ -692,12 +904,13 @@ body[data-difficulty="boss"] .gourmet-row {
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(139, 69, 19, 0.3);
 }
 
 .continue-btn:hover {
-    background: #228B22;
+    background: #A0522D;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(50, 205, 50, 0.3);
+    box-shadow: 0 4px 15px rgba(139, 69, 19, 0.5);
 }
 
 /* MIDI Status */
@@ -774,6 +987,10 @@ body[data-difficulty="boss"] .gourmet-row {
     animation: bounceIn 0.8s ease-out forwards;
 }
 
+.order-ticket.initial-slide-in {
+    animation: initialSlideIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
 /* Animations */
 @keyframes pulse {
     0%, 100% { transform: scale(1); }
@@ -823,6 +1040,47 @@ body[data-difficulty="boss"] .gourmet-row {
     100% {
         transform: translateY(0) scale(1) rotate(-1deg);
         opacity: 1;
+    }
+}
+
+@keyframes initialSlideIn {
+    0% {
+        transform: translateX(350px) scale(0.8) rotate(5deg);
+        opacity: 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    40% {
+        transform: translateX(30px) scale(0.95) rotate(-1deg);
+        opacity: 0.7;
+        box-shadow: -8px 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    70% {
+        transform: translateX(-15px) scale(1.02) rotate(1deg);
+        opacity: 0.9;
+        box-shadow: 5px 10px 25px rgba(0, 0, 0, 0.25);
+    }
+    90% {
+        transform: translateX(5px) scale(0.99) rotate(-0.5deg);
+        opacity: 0.95;
+        box-shadow: -2px 6px 15px rgba(0, 0, 0, 0.15);
+    }
+    100% {
+        transform: translateX(0) scale(1) rotate(0deg);
+        opacity: 1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+}
+
+@keyframes cookingStationAppear {
+    0% {
+        opacity: 0;
+        transform: translateY(100px);
+        pointer-events: none;
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
     }
 }
 

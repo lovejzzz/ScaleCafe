@@ -3,8 +3,29 @@
  * Initializes and connects all cafe components
  */
 
+// Font loading detection to prevent flash
+function loadFonts() {
+    // Check if fonts are already loaded
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+            document.body.classList.add('fonts-loaded');
+        });
+    } else {
+        // Fallback for browsers without font loading API
+        setTimeout(() => {
+            document.body.classList.add('fonts-loaded');
+        }, 100);
+    }
+}
+
+// Load fonts immediately
+loadFonts();
+
 // Wait for DOM to be loaded
 document.addEventListener('DOMContentLoaded', () => {
+    
+    // Ensure fonts are shown (fallback)
+    document.body.classList.add('fonts-loaded');
     
     // Initialize game components
     const scaleEngine = new ScaleEngine();
@@ -12,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Make cafeSystem globally accessible for logging control and debugging
     window.cafeSystem = cafeSystem;
+    window.soundManager = cafeSystem.soundManager;
     window.debugScales = () => cafeSystem.debugScaleGeneration();
     
     // Initialize MIDI handler (includes keyboard fallback)
@@ -28,13 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize menu settings functionality
     initMenuSettings(cafeSystem);
     
+    // Initialize sound toggle
+    initSoundToggle(cafeSystem.soundManager);
+    
     // Auto-apply default settings
     setTimeout(() => {
         cafeSystem.setAvailableScales(['major', 'harmonicMinor']); // Coffee and Bakery
         cafeSystem.currentComplexity = 'elite'; // Set default complexity to Complex
-        cafeSystem.setAvailableKeys(['C', 'G', 'D', 'A', 'E', 'B', 'F#']);
-        cafeSystem.generateNewOrders();
-    }, 500);
+        cafeSystem.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
+        cafeSystem.generateInitialOrders(); // Use the special initial method
+    }, 100); // Reduced delay to make animation start sooner
 });
 
 /**
@@ -136,7 +161,7 @@ function initMenuSettings(cafeSystem) {
         cafeSystem.setAvailableScales(Array.from(selectedDishes));
         cafeSystem.currentComplexity = selectedComplexity; // Set the complexity
         // Use all 12 keys
-        cafeSystem.setAvailableKeys(['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
+        cafeSystem.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
         
         // Log menu settings applied
         console.log(`=== MENU SETTINGS APPLIED ===`);
@@ -161,6 +186,33 @@ function initMenuSettings(cafeSystem) {
             menuPanel.classList.remove('visible');
         }
     });
+}
+
+/**
+ * Initialize sound toggle functionality
+ * @param {SoundManager} soundManager - The sound manager instance
+ */
+function initSoundToggle(soundManager) {
+    const soundToggle = document.getElementById('sound-toggle');
+    
+    if (soundToggle) {
+        soundToggle.addEventListener('click', () => {
+            const isEnabled = soundManager.isEnabled();
+            soundManager.setEnabled(!isEnabled);
+            
+            // Update visual indicator
+            if (soundManager.isEnabled()) {
+                soundToggle.style.color = '#32CD32'; // Green for enabled
+                soundToggle.title = 'Sound enabled - Click to disable';
+            } else {
+                soundToggle.style.color = '#FF6347'; // Red for disabled
+                soundToggle.title = 'Sound disabled - Click to enable';
+            }
+        });
+        
+        // Set initial tooltip
+        soundToggle.title = 'Sound enabled - Click to disable';
+    }
 }
 
 // Keyboard instructions are now directly in the HTML

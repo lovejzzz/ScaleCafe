@@ -7,9 +7,12 @@
 class CafeSystem {
     constructor(scaleEngine) {
         this.scaleEngine = scaleEngine;
+        this.soundManager = new SoundManager();
         this.currentSequence = [];
         this.currentPosition = 0;
         this.isCooking = false;
+        this.isInitialLoad = true; // Track if this is the first time loading orders
+        this.cafeOpened = false; // Track if cafe has been opened
         
         // Player stats
         this.playerXP = 0;
@@ -36,7 +39,7 @@ class CafeSystem {
         // Available orders
         this.availableOrders = [];
         
-        // Dish names from the name.md file (updated with musically accurate enharmonic spellings)
+        // Dish names and prices from the Scale-Enharmonic.md file
         this.dishNames = {
             major: {
                 'C': 'Latte', 'Db': 'Espresso', 'D': 'Cappuccino', 'Eb': 'Mocha',
@@ -61,6 +64,31 @@ class CafeSystem {
             }
         };
         
+        // Dish prices from the Scale-Enharmonic.md file
+        this.dishPrices = {
+            major: {
+                'C': 4.50, 'Db': 2.50, 'D': 4.00, 'Eb': 4.75,
+                'E': 2.50, 'F': 3.00, 'F#': 3.50, 'G': 4.00,
+                'Ab': 3.50, 'A': 3.50, 'Bb': 4.50, 'B': 4.00,
+                // Enharmonic equivalents for compatibility
+                'C#': 2.50, 'D#': 4.75, 'Gb': 3.50, 'G#': 3.50, 'A#': 4.50
+            },
+            harmonicMinor: {
+                'C': 2.50, 'Db': 2.00, 'D': 2.50, 'Eb': 2.75,
+                'E': 3.00, 'F': 1.50, 'F#': 3.00, 'G': 2.50,
+                'Ab': 3.00, 'A': 1.50, 'Bb': 1.00, 'B': 2.50,
+                // Enharmonic equivalents for compatibility
+                'C#': 2.00, 'D#': 2.75, 'Gb': 3.00, 'G#': 3.00, 'A#': 1.00
+            },
+            melodicMinor: {
+                'C': 1.50, 'Db': 1.50, 'D': 1.50, 'Eb': 1.50,
+                'E': 2.00, 'F': 2.00, 'F#': 2.50, 'G': 1.00,
+                'Ab': 2.75, 'A': 2.00, 'Bb': 1.50, 'B': 2.00,
+                // Enharmonic equivalents for compatibility
+                'C#': 1.50, 'D#': 1.50, 'Gb': 2.50, 'G#': 2.75, 'A#': 1.50
+            }
+        };
+        
         // DOM elements
         this.orderTicketsContainer = document.getElementById('order-tickets');
         this.currentOrderElement = document.getElementById('current-order');
@@ -70,7 +98,8 @@ class CafeSystem {
         this.orderCompleteModal = document.getElementById('order-complete-modal');
         this.continueButton = document.getElementById('continue-cooking-btn');
         this.xpRewardElement = document.getElementById('xp-reward');
-        this.coinRewardElement = document.getElementById('coin-reward');
+        this.sellRewardElement = document.getElementById('sell-reward');
+        this.tipRewardElement = document.getElementById('tip-reward');
         this.playerXPElement = document.getElementById('player-xp');
         this.playerCoinsElement = document.getElementById('player-coins');
         this.newOrderBtn = document.getElementById('new-order-btn');
@@ -81,15 +110,17 @@ class CafeSystem {
         // Make the Order Board title clickable to refresh orders
         const refreshOrdersBtn = document.getElementById('refresh-orders');
         if (refreshOrdersBtn) {
-            refreshOrdersBtn.addEventListener('click', () => this.generateNewOrders());
+            refreshOrdersBtn.addEventListener('click', () => {
+                this.isInitialLoad = false; // Ensure no initial animation on manual refresh
+                this.generateNewOrders();
+            });
             refreshOrdersBtn.style.cursor = 'pointer';
         }
         
         // Initialize player stats display
         this.updatePlayerStats();
         
-        // Generate initial orders
-        this.generateNewOrders();
+        // Don't generate initial orders here - let main.js handle it
     }
     
     /**
@@ -103,7 +134,7 @@ class CafeSystem {
      * Set available keys for orders
      */
     setAvailableKeys(keys) {
-        this.availableKeys = keys.length > 0 ? keys : ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+        this.availableKeys = keys.length > 0 ? keys : ['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
     }
     
     /**
@@ -118,11 +149,11 @@ class CafeSystem {
         }
         
         if (!this.availableKeys) {
-            this.setAvailableKeys(['C', 'G', 'D', 'A', 'E', 'B', 'F#']);
+            this.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
         }
         
-        // Generate up to 4 orders maximum
-        const numOrders = Math.min(4, 3 + Math.floor(Math.random() * 2));
+        // Always generate exactly 4 orders
+        const numOrders = 4;
         
         for (let i = 0; i < numOrders; i++) {
             const order = this.generateRandomOrder();
@@ -130,6 +161,20 @@ class CafeSystem {
         }
         
         this.displayOrders();
+    }
+    
+    /**
+     * Generate initial orders with animation (called from main.js)
+     */
+    generateInitialOrders() {
+        console.log('=== SETTING UP CAFE OPENING ===');
+        this.isInitialLoad = true; // Ensure this is set to true
+        this.cafeOpened = false; // Reset cafe opened state
+        
+        // Body should already have cafe-closed class from HTML, just ensure others are removed
+        document.body.classList.remove('cafe-opened', 'cafe-opening', 'cooking-station-appearing');
+        
+        this.generateNewOrders(); // This will show the "Open the Cafe" button
     }
     
     /**
@@ -151,7 +196,7 @@ class CafeSystem {
             customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
             complexity: complexity,
             dishes: [],
-            totalTip: Math.floor(50 * complexitySettings.coinMultiplier + Math.random() * 50)
+            totalSell: 0 // Will be calculated after dishes are added
         };
         
         // Randomly choose direction for each order
@@ -199,16 +244,19 @@ class CafeSystem {
             // Generate the 8-note sequence starting from the chosen note
             const sequence = this.generateSequenceFromStartNote(correctScale, startNote, orderDirection);
             
+            const dishPrice = this.getDishPrice(randomScaleType, randomKey);
             const dish = {
                 name: this.getDishName(randomScaleType, randomKey),
                 scaleType: randomScaleType,
                 key: randomKey,
                 startNote: startNote,
                 direction: orderDirection,
-                sequence: sequence
+                sequence: sequence,
+                price: dishPrice
             };
             
             order.dishes.push(dish);
+            order.totalSell += dishPrice;
             
             // Set previous end note for voice leading
             if (sequence && sequence.length > 0) {
@@ -250,42 +298,42 @@ class CafeSystem {
             },
             harmonicMinor: {
                 'C': ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'B', 'C'],
-                'Db': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
+                'Db': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
                 'D': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C#', 'D'],
-                'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'],
+                'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'B', 'D', 'Eb'],
                 'E': ['E', 'F#', 'G', 'A', 'B', 'C', 'D#', 'E'],
                 'F': ['F', 'G', 'Ab', 'Bb', 'C', 'Db', 'E', 'F'],
-                'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E', 'F#'],
+                'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'F', 'F#'],
                 'G': ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F#', 'G'],
-                'Ab': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F', 'G', 'Ab'],
+                'Ab': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'F', 'G', 'Ab'],
                 'A': ['A', 'B', 'C', 'D', 'E', 'F', 'G#', 'A'],
                 'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb'],
                 'B': ['B', 'C#', 'D', 'E', 'F#', 'G', 'A#', 'B'],
                 // Enharmonic equivalents for compatibility
-                'C#': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Harmonic Minor
-                'D#': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'], // Use Eb Harmonic Minor
-                'Gb': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'E', 'F#'], // Use F# Harmonic Minor
-                'G#': ['Ab', 'Bb', 'Cb', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Harmonic Minor
+                'C#': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Harmonic Minor
+                'D#': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'B', 'D', 'Eb'], // Use Eb Harmonic Minor
+                'Gb': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'F', 'F#'], // Use F# Harmonic Minor
+                'G#': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Harmonic Minor
                 'A#': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb']  // Use Bb Harmonic Minor
             },
             melodicMinor: {
                 'C': ['C', 'D', 'Eb', 'F', 'G', 'A', 'B', 'C'],
-                'Db': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
+                'Db': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
                 'D': ['D', 'E', 'F', 'G', 'A', 'B', 'C#', 'D'],
                 'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'],
                 'E': ['E', 'F#', 'G', 'A', 'B', 'C#', 'D#', 'E'],
                 'F': ['F', 'G', 'Ab', 'Bb', 'C', 'D', 'E', 'F'],
                 'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D#', 'F', 'F#'],
                 'G': ['G', 'A', 'Bb', 'C', 'D', 'E', 'F#', 'G'],
-                'Ab': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G', 'Ab'],
+                'Ab': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'F', 'G', 'Ab'],
                 'A': ['A', 'B', 'C', 'D', 'E', 'F#', 'G#', 'A'],
                 'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'G', 'A', 'Bb'],
                 'B': ['B', 'C#', 'D', 'E', 'F#', 'G#', 'A#', 'B'],
                 // Enharmonic equivalents for compatibility
-                'C#': ['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Melodic Minor
+                'C#': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Melodic Minor
                 'D#': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'C', 'D', 'Eb'], // Use Eb Melodic Minor
                 'Gb': ['F#', 'G#', 'A', 'B', 'C#', 'D#', 'F', 'F#'], // Use F# Melodic Minor
-                'G#': ['Ab', 'Bb', 'C', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Melodic Minor
+                'G#': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Melodic Minor
                 'A#': ['Bb', 'C', 'Db', 'Eb', 'F', 'G', 'A', 'Bb']  // Use Bb Melodic Minor
             }
         };
@@ -437,6 +485,21 @@ class CafeSystem {
     }
     
     /**
+     * Get dish price from the pricing system
+     */
+    getDishPrice(scaleType, key) {
+        // Handle enharmonic equivalents
+        const normalizedKey = this.normalizeKey(key);
+        
+        if (this.dishPrices[scaleType] && this.dishPrices[scaleType][normalizedKey]) {
+            return this.dishPrices[scaleType][normalizedKey];
+        }
+        
+        // Fallback price
+        return 2.00;
+    }
+    
+    /**
      * Normalize key names to match the dish names (prefer flats for musically accurate spelling)
      */
     normalizeKey(key) {
@@ -455,12 +518,161 @@ class CafeSystem {
      * Display available orders as tickets
      */
     displayOrders() {
-        this.orderTicketsContainer.innerHTML = '';
+        if (this.isInitialLoad && !this.cafeOpened) {
+            // Show "Open the Cafe" button
+            this.showOpenCafeButton();
+        } else if (this.isInitialLoad && this.cafeOpened) {
+            // Show preparing orders with progress bar
+            this.showPreparingOrders();
+        } else {
+            this.orderTicketsContainer.innerHTML = '';
+            this.renderOrderTickets();
+        }
+    }
+    
+    /**
+     * Show the "Open the Cafe" button
+     */
+    showOpenCafeButton() {
+        this.orderTicketsContainer.innerHTML = `
+            <div class="cafe-opening">
+                <button class="open-cafe-btn" id="open-cafe-btn">
+                    ☕ Open the Cafe
+                </button>
+            </div>
+        `;
         
-        this.availableOrders.forEach(order => {
-            const ticket = this.createOrderTicket(order);
-            this.orderTicketsContainer.appendChild(ticket);
+        // Add click handler for the button
+        const openBtn = document.getElementById('open-cafe-btn');
+        openBtn.addEventListener('click', () => {
+            this.openCafe();
         });
+    }
+    
+    /**
+     * Show preparing orders with progress bar
+     */
+    showPreparingOrders() {
+        this.orderTicketsContainer.innerHTML = `
+            <div class="preparing-orders">
+                <div class="preparing-text">
+                    <span>📋</span>
+                    <span>Preparing fresh orders...</span>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar-fill" id="cafe-progress-bar"></div>
+                </div>
+            </div>
+        `;
+        
+        // Start progress bar animation
+        this.soundManager.play('preparingOrder', 0.245); // 35% of default 0.7 volume
+        this.animateProgressBar();
+    }
+    
+    /**
+     * Open the cafe and start the preparation sequence
+     */
+    openCafe() {
+        this.cafeOpened = true;
+        this.soundManager.play('openCafe', 0.49); // 70% of default 0.7 volume
+        
+        // Stage 1: Start moving the order board up and expanding
+        document.body.classList.remove('cafe-closed');
+        document.body.classList.add('cafe-opening');
+        
+        // Immediately add cooking-station-appearing to prevent any flash
+        document.body.classList.add('cooking-station-appearing');
+        
+        // Stage 2: Start progress bar during the movement
+        setTimeout(() => {
+            this.showPreparingOrders();
+        }, 300); // Start progress bar while board is moving
+        
+        // Stage 3: Complete the transition to final layout after progress
+        // This will be handled in animateProgressBar when progress completes
+    }
+    
+    /**
+     * Animate the progress bar over 3 seconds
+     */
+    animateProgressBar() {
+        const progressBar = document.getElementById('cafe-progress-bar');
+        let progress = 0;
+        const duration = 3000; // 3 seconds
+        const interval = 30; // Update every 30ms for smooth animation
+        const increment = (100 / duration) * interval;
+        
+        // cooking-station-appearing class is already added in openCafe()
+        
+        const progressInterval = setInterval(() => {
+            progress += increment;
+            progressBar.style.width = `${Math.min(progress, 100)}%`;
+            
+            if (progress >= 100) {
+                clearInterval(progressInterval);
+                
+                // Complete the layout transition to final state
+                document.body.classList.remove('cafe-opening', 'cooking-station-appearing');
+                document.body.classList.add('cafe-opened');
+                
+                // Start the order animation immediately - no need to wait since board stays in position
+                this.orderTicketsContainer.innerHTML = '';
+                this.renderOrderTickets();
+            }
+        }, interval);
+    }
+    
+    /**
+     * Render the actual order tickets
+     */
+    renderOrderTickets() {
+        this.availableOrders.forEach((order, index) => {
+            const ticket = this.createOrderTicket(order);
+            
+            if (this.isInitialLoad) {
+                // Add initial load styling for sliding animation
+                ticket.classList.add('initial-load');
+                this.orderTicketsContainer.appendChild(ticket);
+                
+                console.log(`Order ${index + 1}: Added initial-load class, starting animation in ${index * 400}ms`);
+                
+                // Force a reflow to ensure the initial-load class is applied
+                ticket.offsetHeight;
+                
+                // Use requestAnimationFrame to ensure DOM is ready
+                requestAnimationFrame(() => {
+                    // Trigger sliding animation with staggered delay
+                    setTimeout(() => {
+                        console.log(`Order ${index + 1}: Starting slide animation`);
+                        
+                        // Play slide-in sound for each order
+                        this.soundManager.play('orderSlideIn', 0.49); // 70% of default 0.7 volume
+                        
+                        ticket.classList.remove('initial-load');
+                        
+                        // Force another reflow
+                        ticket.offsetHeight;
+                        
+                        ticket.classList.add('initial-slide-in');
+                        
+                        // Remove animation class after animation completes
+                        setTimeout(() => {
+                            console.log(`Order ${index + 1}: Animation complete, removing class`);
+                            ticket.classList.remove('initial-slide-in');
+                        }, 1500);
+                    }, index * 400); // Start immediately, then stagger each order by 400ms
+                });
+            } else {
+                // Normal display for subsequent order generations
+                this.orderTicketsContainer.appendChild(ticket);
+            }
+        });
+        
+        // Mark that initial load is complete
+        if (this.isInitialLoad) {
+            this.isInitialLoad = false;
+        }
     }
     
     /**
@@ -478,7 +690,7 @@ class CafeSystem {
         };
         
         const dishList = order.dishes.map(dish => 
-            `<li>${dish.key} ${this.formatScaleTypeName(dish.scaleType)} ${dish.name}</li>`
+            `<li>${this.formatKeyName(dish.key)} ${this.formatScaleTypeName(dish.scaleType)} ${dish.name}</li>`
         ).join('');
         
         const direction = order.dishes[0]?.direction || 'ascending';
@@ -494,12 +706,15 @@ class CafeSystem {
                     ${dishList}
                 </ul>
                 <div class="ticket-footer">
-                    <span class="tip-amount">💰 $${order.totalTip}</span>
+                    <span class="sell-amount">💰 $${order.totalSell.toFixed(2)}</span>
                 </div>
             </div>
         `;
         
-        ticket.addEventListener('click', () => this.selectOrder(order));
+        ticket.addEventListener('click', () => {
+            this.soundManager.play('takeOrder', 0.28); // 40% of default 0.7 volume
+            this.selectOrder(order);
+        });
         
         return ticket;
     }
@@ -558,7 +773,7 @@ class CafeSystem {
         
         // Log each scale with its starting note for voice leading verification
         this.currentOrder.dishes.forEach((dish, index) => {
-            const scaleInfo = `${dish.key} ${this.formatScaleTypeName(dish.scaleType)}`;
+            const scaleInfo = `${this.formatKeyName(dish.key)} ${this.formatScaleTypeName(dish.scaleType)}`;
             console.log(`Scale ${index + 1}: ${scaleInfo} starting from ${dish.startNote}`);
         });
         
@@ -697,16 +912,26 @@ class CafeSystem {
         
         const complexitySettings = this.complexityLevels[this.currentComplexity];
         const xpReward = 100 * complexitySettings.xpMultiplier;
-        const coinReward = this.currentOrder.totalTip;
+        const sellAmount = this.currentOrder.totalSell;
+        
+        // Calculate tip as 15-25% of sell amount
+        const tipPercentage = 0.15 + Math.random() * 0.10; // Random between 15% and 25%
+        const tipAmount = sellAmount * tipPercentage;
+        
+        // Total coins earned = sell amount + tip
+        const totalCoinsEarned = sellAmount + tipAmount;
+        
+        // Play earn money sound
+        this.soundManager.play('earnMoney');
         
         // Update player stats
         this.playerXP += xpReward;
-        this.playerCoins += coinReward;
+        this.playerCoins += totalCoinsEarned;
         this.updatePlayerStats();
         this.saveProgress();
         
         // Show completion modal
-        this.showOrderComplete(xpReward, coinReward);
+        this.showOrderComplete(xpReward, sellAmount, tipAmount);
         
         // Animate order completion and removal
         this.animateOrderCompletion(this.currentOrder.id);
@@ -715,9 +940,10 @@ class CafeSystem {
     /**
      * Show order completion modal
      */
-    showOrderComplete(xpReward, coinReward) {
+    showOrderComplete(xpReward, sellAmount, tipAmount) {
         this.xpRewardElement.textContent = xpReward;
-        this.coinRewardElement.textContent = coinReward;
+        this.sellRewardElement.textContent = sellAmount.toFixed(2);
+        this.tipRewardElement.textContent = tipAmount.toFixed(2);
         
         const completionMessage = document.getElementById('completion-message');
         const messages = [
@@ -768,7 +994,7 @@ class CafeSystem {
         
         // Show only the scale name (without the dish name) in the cooking order
         const dishList = this.currentOrder.dishes.map(dish => 
-            `<span class="dish-name">${dish.key} ${this.formatScaleTypeName(dish.scaleType)}</span>`
+            `<span class="dish-name">${this.formatKeyName(dish.key)} ${this.formatScaleTypeName(dish.scaleType)}</span>`
         ).join(', ');
         
         const direction = this.currentOrder.dishes[0]?.direction || 'ascending';
@@ -909,6 +1135,13 @@ class CafeSystem {
     }
     
     /**
+     * Format key name for display with proper flat symbols
+     */
+    formatKeyName(key) {
+        return key.replace('b', '♭').replace('#', '♯');
+    }
+    
+    /**
      * Update player stats display
      */
     updatePlayerStats() {
@@ -916,7 +1149,7 @@ class CafeSystem {
             this.playerXPElement.textContent = this.playerXP;
         }
         if (this.playerCoinsElement) {
-            this.playerCoinsElement.textContent = this.playerCoins;
+            this.playerCoinsElement.textContent = this.playerCoins.toFixed(1);
         }
     }
     
@@ -960,6 +1193,9 @@ class CafeSystem {
         ticket.classList.add('new-order-entering');
         
         this.orderTicketsContainer.appendChild(ticket);
+        
+        // Play slide-in sound for new order refill
+        this.soundManager.play('orderSlideIn', 0.49); // 70% of default 0.7 volume
         
         // Trigger bounce animation
         setTimeout(() => {
