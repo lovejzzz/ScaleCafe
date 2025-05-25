@@ -217,9 +217,8 @@ body.cafe-opened .cooking-station {
 
 .clickable-title {
     transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    display: block;
+    text-align: center;
     position: relative;
 }
 
@@ -228,15 +227,22 @@ body.cafe-opened .cooking-station {
     transform: scale(1.05);
 }
 
+/* Removed refresh symbol */
 .clickable-title:after {
-    content: ' 🔄';
-    font-size: 0.8em;
-    margin-left: 0.5rem;
-    opacity: 0.7;
+    content: '';
+    display: none;
 }
 
 .clickable-title:hover:after {
     opacity: 1;
+}
+
+.non-clickable {
+    cursor: default !important;
+}
+
+.non-clickable:after {
+    display: none !important;
 }
 
 .order-tickets {
@@ -505,6 +511,7 @@ body.cafe-opened .cooking-station {
     color: #8B4513;
     margin-bottom: 1rem;
     font-size: 1.5rem;
+    text-align: center;
 }
 
 .current-order {

@@ -110,11 +110,19 @@ class CafeSystem {
         // Make the Order Board title clickable to refresh orders
         const refreshOrdersBtn = document.getElementById('refresh-orders');
         if (refreshOrdersBtn) {
+            // Initially hide the refresh functionality
+            refreshOrdersBtn.classList.add('non-clickable');
+            refreshOrdersBtn.style.cursor = 'default';
+            // Remove the clickable-title class initially
+            refreshOrdersBtn.classList.remove('clickable-title');
+            
             refreshOrdersBtn.addEventListener('click', () => {
-                this.isInitialLoad = false; // Ensure no initial animation on manual refresh
-                this.generateNewOrders();
+                // Only allow refresh if cafe is opened
+                if (this.cafeOpened) {
+                    this.isInitialLoad = false; // Ensure no initial animation on manual refresh
+                    this.generateNewOrders();
+                }
             });
-            refreshOrdersBtn.style.cursor = 'pointer';
         }
         
         // Initialize player stats display
@@ -298,22 +306,22 @@ class CafeSystem {
             },
             harmonicMinor: {
                 'C': ['C', 'D', 'Eb', 'F', 'G', 'Ab', 'B', 'C'],
-                'Db': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'Bb', 'C', 'Db'],
+                'Db': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'A', 'C', 'Db'],
                 'D': ['D', 'E', 'F', 'G', 'A', 'Bb', 'C#', 'D'],
                 'Eb': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'B', 'D', 'Eb'],
                 'E': ['E', 'F#', 'G', 'A', 'B', 'C', 'D#', 'E'],
                 'F': ['F', 'G', 'Ab', 'Bb', 'C', 'Db', 'E', 'F'],
                 'F#': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'F', 'F#'],
                 'G': ['G', 'A', 'Bb', 'C', 'D', 'Eb', 'F#', 'G'],
-                'Ab': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'F', 'G', 'Ab'],
+                'Ab': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'E', 'G', 'Ab'],
                 'A': ['A', 'B', 'C', 'D', 'E', 'F', 'G#', 'A'],
                 'Bb': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb'],
                 'B': ['B', 'C#', 'D', 'E', 'F#', 'G', 'A#', 'B'],
                 // Enharmonic equivalents for compatibility
-                'C#': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'Bb', 'C', 'Db'], // Use Db Harmonic Minor
+                'C#': ['Db', 'Eb', 'E', 'Gb', 'Ab', 'A', 'C', 'Db'], // Use Db Harmonic Minor
                 'D#': ['Eb', 'F', 'Gb', 'Ab', 'Bb', 'B', 'D', 'Eb'], // Use Eb Harmonic Minor
                 'Gb': ['F#', 'G#', 'A', 'B', 'C#', 'D', 'F', 'F#'], // Use F# Harmonic Minor
-                'G#': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'F', 'G', 'Ab'], // Use Ab Harmonic Minor
+                'G#': ['Ab', 'Bb', 'B', 'Db', 'Eb', 'E', 'G', 'Ab'], // Use Ab Harmonic Minor
                 'A#': ['Bb', 'C', 'Db', 'Eb', 'F', 'Gb', 'A', 'Bb']  // Use Bb Harmonic Minor
             },
             melodicMinor: {
@@ -584,6 +592,9 @@ class CafeSystem {
         // Immediately add cooking-station-appearing to prevent any flash
         document.body.classList.add('cooking-station-appearing');
         
+        // We'll enable the refresh orders functionality after all orders have slid in
+        // This will be handled by a timeout in the animateProgressBar method
+        
         // Stage 2: Start progress bar during the movement
         setTimeout(() => {
             this.showPreparingOrders();
@@ -672,6 +683,22 @@ class CafeSystem {
         // Mark that initial load is complete
         if (this.isInitialLoad) {
             this.isInitialLoad = false;
+            
+            // Enable the refresh orders functionality after all orders have slid in
+            // We use the timing of the last order (index 3) plus its animation duration
+            const lastOrderDelay = 3 * 400; // 3rd order delay (0-indexed)
+            const animationDuration = 1500; // Animation duration
+            const totalDelay = lastOrderDelay + animationDuration + 100; // Add a small buffer
+            
+            setTimeout(() => {
+                const refreshOrdersBtn = document.getElementById('refresh-orders');
+                if (refreshOrdersBtn) {
+                    refreshOrdersBtn.classList.remove('non-clickable');
+                    refreshOrdersBtn.classList.add('clickable-title');
+                    refreshOrdersBtn.style.cursor = 'pointer';
+                    console.log('Refresh orders functionality enabled');
+                }
+            }, totalDelay);
         }
     }
     

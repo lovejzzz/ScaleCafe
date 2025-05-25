@@ -24,14 +24,14 @@
 | Key               | Notes              | Cafe Item    | Price  |
 | ----------------- | ------------------ | ------------ | ------ |
 | C Harmonic Minor  | C D E♭ F G A♭ B    | Croissant    | $2.50  |
-| D♭ Harmonic Minor | D♭ E♭ E G♭ A♭ B♭ C | Bagel        | $2.00  |
+| D♭ Harmonic Minor | D♭ E♭ E G♭ A♭ A C  | Bagel        | $2.00  |
 | D Harmonic Minor  | D E F G A B♭ C♯    | Scone        | $2.50  |
 | E♭ Harmonic Minor | E♭ F G♭ A♭ B♭ B D  | Muffin       | $2.75  |
 | E Harmonic Minor  | E F♯ G A B C D♯    | Danish       | $3.00  |
 | F Harmonic Minor  | F G A♭ B♭ C D♭ E   | Biscuit      | $1.50  |
 | F♯ Harmonic Minor | F♯ G♯ A B C♯ D F   | Tart         | $3.00  |
 | G Harmonic Minor  | G A B♭ C D E♭ F♯   | Brioche      | $2.50  |
-| A♭ Harmonic Minor | A♭ B♭ B D♭ E♭ F G  | Strudel      | $3.00  |
+| A♭ Harmonic Minor | A♭ B♭ B D♭ E♭ E G  | Strudel      | $3.00  |
 | A Harmonic Minor  | A B C D E F G♯     | Roll         | $1.50  |
 | B♭ Harmonic Minor | B♭ C D♭ E♭ F G♭ A  | Breadstick   | $1.00  |
 | B Harmonic Minor  | B C♯ D E F♯ G A♯   | Pastry       | $2.50  |
