@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sequence Fix</title>
+</head>
+<body>
+    <h1>Testing Sequence Generation Fix</h1>
+    <div id="results"></div>
+
+    <script src="js/scale-engine.js"></script>
+    <script src="js/cafe-system.js"></script>
+    <script>
+        // Test the specific case that was causing issues
+        const scaleEngine = new ScaleEngine();
+        const cafeSystem = new CafeSystem(scaleEngine);
+        
+        // Test D Harmonic Minor starting from A (descending)
+        const dHarmonicMinor = cafeSystem.generateCorrectScale('harmonicMinor', 'D');
+        console.log('D Harmonic Minor scale:', dHarmonicMinor);
+        
+        const dHarmonicSequence = cafeSystem.generateSequenceFromStartNote(dHarmonicMinor, 'A', 'descending');
+        console.log('D Harmonic Minor descending from A:', dHarmonicSequence);
+        
+        // Test C Melodic Minor starting from A (descending) - but this should use voice leading!
+        const cMelodicMinor = cafeSystem.generateCorrectScale('melodicMinor', 'C');
+        console.log('C Melodic Minor scale:', cMelodicMinor);
+        
+        // The second scale should NOT start from A - it should use voice leading from the end of the first scale
+        const firstScaleEndNote = dHarmonicSequence[dHarmonicSequence.length - 1];
+        console.log('First scale ends on:', firstScaleEndNote);
+        
+        const voiceLeadingNote = cafeSystem.findVoiceLeadingNote(firstScaleEndNote, cMelodicMinor, 'descending');
+        console.log('Voice leading note for C Melodic Minor:', voiceLeadingNote);
+        
+        const cMelodicSequence = cafeSystem.generateSequenceFromStartNote(cMelodicMinor, voiceLeadingNote, 'descending');
+        console.log('C Melodic Minor descending from', voiceLeadingNote + ':', cMelodicSequence);
+        
+        // Check for duplicates
+        function checkDuplicates(sequence, name) {
+            const duplicates = sequence.filter((note, index) => sequence.indexOf(note) !== index);
+            if (duplicates.length > 0) {
+                console.error(`❌ DUPLICATES in ${name}:`, duplicates);
+                return false;
+            } else {
+                console.log(`✅ No duplicates in ${name}`);
+                return true;
+            }
+        }
+        
+        const dHarmonicOK = checkDuplicates(dHarmonicSequence, 'D Harmonic Minor descending from A');
+        const cMelodicOK = checkDuplicates(cMelodicSequence, `C Melodic Minor descending from ${voiceLeadingNote}`);
+        
+        // Display results
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+            <h2>Test Results</h2>
+            <p><strong>D Harmonic Minor descending from A:</strong> ${dHarmonicSequence.join(', ')} ${dHarmonicOK ? '✅' : '❌'}</p>
+            <p><strong>C Melodic Minor descending from ${voiceLeadingNote}:</strong> ${cMelodicSequence.join(', ')} ${cMelodicOK ? '✅' : '❌'}</p>
+            <p><strong>Combined sequence with voice leading:</strong> [${dHarmonicSequence.join(', ')}, ${cMelodicSequence.join(', ')}]</p>
+            <p><strong>Voice leading:</strong> ${firstScaleEndNote} → ${voiceLeadingNote} (${voiceLeadingNote === firstScaleEndNote ? 'Same note' : 'Different note'} ✅)</p>
+        `;
+        
+        if (dHarmonicOK && cMelodicOK) {
+            console.log('🎉 All tests passed! No duplicate notes detected.');
+        } else {
+            console.error('❌ Tests failed! Duplicate notes still present.');
+        }
+    </script>
+</body>
+</html> 
