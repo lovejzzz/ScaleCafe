@@ -989,36 +989,32 @@ display: none;
     animation: initialSlideIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
-/* Fill gap animations */
-.order-ticket.fill-gap-entering {
-    transform: translateX(150px) scale(0.9);
-    opacity: 0;
-    position: relative;
-    z-index: 1;
+/* Slot-based animations for order tickets */
+@keyframes moveToSlot {
+    0% {
+        transform: translateX(calc((var(--original-slot) - var(--target-slot)) * 120px)) scale(0.8) rotate(5deg);
+        opacity: 0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    40% {
+        transform: translateX(calc((var(--original-slot) - var(--target-slot)) * 120px - 15px)) scale(0.95) rotate(-1deg);
+        opacity: 0.7;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    70% {
+        transform: translateX(calc((var(--original-slot) - var(--target-slot)) * 120px + 5px)) scale(1.02) rotate(1deg);
+        opacity: 0.9;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    }
+    100% {
+        transform: translateX(0) scale(1) rotate(-1deg);
+        opacity: 1;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 }
 
-.order-ticket.fill-gap-animation {
-    animation: fillGapAnimation 1s ease-out forwards;
-}
-
-.order-ticket.shift-left {
-    animation: shiftLeft 0.8s ease-out forwards;
-}
-
-.order-ticket.shift-left-nearest {
-    animation: shiftLeftNearest 0.8s ease-out forwards;
-}
-
-/* Wrapper for synchronized movement of multiple tickets */
-.moving-tickets-wrapper {
-    display: flex;
-    flex-direction: row;
-    gap: 1rem;
-    position: relative;
-}
-
-.moving-tickets-wrapper.shift-left-group {
-    animation: shiftLeft 0.8s ease-out forwards;
+.order-ticket.move-to-slot {
+    animation: moveToSlot 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .order-ticket.initial-slide-in {
