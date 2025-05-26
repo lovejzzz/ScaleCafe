@@ -1287,9 +1287,6 @@ class CafeSystem {
         ticket.classList.add('fill-gap-entering');
         this.orderTicketsContainer.appendChild(ticket);
         
-        // Play slide-in sound for new order refill
-        this.soundManager.play('orderSlideIn', 0.49); // 70% of default 0.7 volume
-        
         // Get all existing tickets
         const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not(.fill-gap-entering)'));
         console.log(`Existing tickets: ${existingTickets.length}`);
@@ -1299,9 +1296,13 @@ class CafeSystem {
             ticket.dataset.originalPosition = index;
         });
         
-        // Start the animation
+        // Add a small delay before starting animations for a more natural flow
         setTimeout(() => {
-            // Animate existing tickets to fill the gap if they are after the removed order
+            // Play slide-in sound for new order refill with slightly reduced volume
+            this.soundManager.play('orderSlideIn', 0.35); // 50% of default 0.7 volume
+            
+            // Stagger the animations for a more natural flow
+            // First animate existing tickets to fill the gap if they are after the removed order
             existingTickets.forEach(ticket => {
                 const position = parseInt(ticket.dataset.originalPosition);
                 if (position > removedOrderIndex) {
@@ -1310,10 +1311,12 @@ class CafeSystem {
                 }
             });
             
-            // Animate the new ticket to enter from the right
-            ticket.classList.remove('fill-gap-entering');
-            ticket.classList.add('fill-gap-animation');
-        }, 100);
+            // Then animate the new ticket to enter from the right after a small delay
+            setTimeout(() => {
+                ticket.classList.remove('fill-gap-entering');
+                ticket.classList.add('fill-gap-animation');
+            }, 150);
+        }, 200);
         
         // Remove animation classes after animation completes
         setTimeout(() => {
@@ -1322,7 +1325,7 @@ class CafeSystem {
                 delete ticket.dataset.originalPosition;
             });
             ticket.classList.remove('fill-gap-animation');
-        }, 1200);
+        }, 1500);
     }
     
     /**
