@@ -1281,59 +1281,99 @@ class CafeSystem {
     animateNewOrderToFillGap(newOrder, removedOrderIndex) {
         // Create the new ticket but keep it invisible initially
         const newTicket = this.createOrderTicket(newOrder);
+        newTicket.style.opacity = '0';  // Start invisible
         this.orderTicketsContainer.appendChild(newTicket);
         
         // Get all existing tickets
-        const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not(.completed)'));
+        const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not(.completed):not([style*="opacity: 0"])'));
         console.log(`Existing tickets: ${existingTickets.length}`);
         
-        // Add data attribute to track the original position
-        existingTickets.forEach((ticket, index) => {
-            ticket.dataset.originalPosition = index;
-        });
+        // Filter tickets that need to move (those after the removed one)
+        const ticketsToMove = existingTickets.filter((ticket, index) => index >= removedOrderIndex);
+        console.log(`Tickets to move: ${ticketsToMove.length}`);
         
         // Add a small delay before starting animations for a more natural flow
         setTimeout(() => {
-            // Play slide-in sound for new order refill with slightly reduced volume
-            this.soundManager.play('orderSlideIn', 0.35);
-            
-            // First, animate all tickets that need to shift left to fill the gap
-            existingTickets.forEach(ticket => {
-                const position = parseInt(ticket.dataset.originalPosition);
-                
-                // If the ticket is after the removed one, it needs to shift left
-                if (position > removedOrderIndex) {
-                    // Calculate how many positions it needs to move left
-                    const slotsToMove = 1; // Always move 1 slot left
-                    
-                    // Add the appropriate animation class
-                    ticket.classList.add('move-to-slot');
-                    ticket.style.setProperty('--original-slot', position);
-                    ticket.style.setProperty('--target-slot', position - slotsToMove);
-                }
+            // Animate tickets one by one with cascading delays
+            this.animateTicketsSequentially(ticketsToMove, removedOrderIndex, () => {
+                // After all existing tickets have moved, animate the new ticket
+                this.animateNewTicketEntry(newTicket);
             });
-            
-            // Then animate the new ticket to enter from the right
-            // It will take the last position (position 3)
-            newTicket.classList.add('move-to-slot');
-            newTicket.style.setProperty('--original-slot', '4'); // Start from off-screen (position 4)
-            newTicket.style.setProperty('--target-slot', '3'); // Move to position 3 (last visible slot)
-            
         }, 200);
+    }
+    
+    /**
+     * Animate tickets one by one in sequence
+     */
+    animateTicketsSequentially(tickets, removedOrderIndex, onComplete) {
+        if (tickets.length === 0) {
+            if (onComplete) onComplete();
+            return;
+        }
         
-        // Remove animation classes after animation completes
-        setTimeout(() => {
-            existingTickets.forEach(ticket => {
-                ticket.classList.remove('move-to-slot');
-                delete ticket.dataset.originalPosition;
-                ticket.style.removeProperty('--original-slot');
-                ticket.style.removeProperty('--target-slot');
-            });
+        // Start with the first ticket (closest to the gap)
+        let currentIndex = 0;
+        
+        const animateNext = () => {
+            if (currentIndex >= tickets.length) {
+                if (onComplete) onComplete();
+                return;
+            }
             
-            newTicket.classList.remove('move-to-slot');
-            newTicket.style.removeProperty('--original-slot');
-            newTicket.style.removeProperty('--target-slot');
-        }, 1500);
+            const ticket = tickets[currentIndex];
+            const targetPosition = removedOrderIndex + currentIndex;
+            
+            // Play slide-in sound with reduced volume for each ticket
+            this.soundManager.play('orderSlideIn', 0.2);
+            
+            // Add the animation class
+            ticket.classList.add('move-to-slot');
+            ticket.style.setProperty('--original-slot', targetPosition + 1); // Current position
+            ticket.style.setProperty('--target-slot', targetPosition);     // Target position (one slot left)
+            
+            // Set up listener for animation end to trigger the next ticket
+            const animationEndHandler = () => {
+                ticket.removeEventListener('animationend', animationEndHandler);
+                currentIndex++;
+                
+                // Short delay before animating the next ticket
+                setTimeout(animateNext, 150);
+            };
+            
+            ticket.addEventListener('animationend', animationEndHandler);
+        };
+        
+        // Start the animation sequence
+        animateNext();
+    }
+    
+    /**
+     * Animate the new ticket entry
+     */
+    animateNewTicketEntry(newTicket) {
+        // Play sound for new ticket
+        this.soundManager.play('orderSlideIn', 0.35);
+        
+        // Make the ticket visible
+        newTicket.style.opacity = '1';
+        
+        // Add the animation class
+        newTicket.classList.add('move-to-slot');
+        newTicket.style.setProperty('--original-slot', '4'); // Start from off-screen (position 4)
+        newTicket.style.setProperty('--target-slot', '3');  // Move to position 3 (last visible slot)
+        
+        // Clean up after animation completes
+        newTicket.addEventListener('animationend', () => {
+            setTimeout(() => {
+                // Clean up all tickets
+                const allTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket.move-to-slot'));
+                allTickets.forEach(ticket => {
+                    ticket.classList.remove('move-to-slot');
+                    ticket.style.removeProperty('--original-slot');
+                    ticket.style.removeProperty('--target-slot');
+                });
+            }, 100);
+        });
     }
     
     /**
