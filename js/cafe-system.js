@@ -1025,7 +1025,7 @@ class CafeSystem {
         
         // Show only the scale name (without the dish name) in the cooking order
         const dishList = this.currentOrder.dishes.map(dish => 
-            `<span class="dish-name">${this.formatKeyName(dish.key)} ${this.formatScaleTypeName(dish.scaleType)}</span>`
+            `<span class="dish-name scale-${dish.scaleType}">${this.formatKeyName(dish.key)} ${this.formatScaleTypeName(dish.scaleType)}</span>`
         ).join(', ');
         
         const direction = this.currentOrder.dishes[0]?.direction || 'ascending';

@@ -459,15 +459,15 @@ body.cafe-opened .cooking-station {
 }
 
 .direction-badge.ascending {
-    background: #87CEEB;
-    color: #1E3A8A;
-    border: 1px solid #1E3A8A;
+    background: #4682B4; /* Steel Blue */
+    color: #FFFFFF; /* White text for better contrast */
+    border: 1px solid #2B506E; /* Darker border for definition */
 }
 
 .direction-badge.descending {
-    background: #FFB347;
-    color: #B8860B;
-    border: 1px solid #B8860B;
+    background: #4A7043; /* Olive sage */
+    color: #FFFFFF; /* White text for better contrast */
+    border: 1px solid #2A4023; /* Darker border for definition */
 }
 
 .new-order-btn {
@@ -548,12 +548,28 @@ body.cafe-opened .cooking-station {
 }
 
 .dish-name {
-    background: #F4A460;
     padding: 0.25rem 0.5rem;
     border-radius: 8px;
     margin-right: 0.5rem;
-    color: #2F1B14;
+    background: #F4A460; /* Default background */
+    color: #2F1B14; /* Default text color */
     font-weight: 600;
+}
+
+/* Scale type specific colors */
+.dish-name.scale-harmonicMinor {
+    background: #a39962; /* Updated color */
+    color: #FFFFFF; /* White text for better contrast */
+}
+
+.dish-name.scale-melodicMinor {
+    background: #D4A017; /* honey ochre */
+    color: #2F1B14; /* Darker text for better contrast */
+}
+
+.dish-name.scale-major {
+    background: #4A2C2A; /* espresso brown */
+    color: #FFFFFF; /* White text for better contrast */
 }
 
 /* Recipe Display */
@@ -808,13 +824,14 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .apply-btn {
-    background: #32CD32;
+    background: #A0522D; /* Sienna */
     color: white;
 }
 
 .apply-btn:hover {
-    background: #228B22;
+    background: #8B4513; /* Darker shade for hover */
     transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(160, 82, 45, 0.5);
 }
 
 .close-btn {
