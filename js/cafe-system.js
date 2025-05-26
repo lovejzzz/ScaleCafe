@@ -1326,7 +1326,17 @@ class CafeSystem {
             // Play slide-in sound with reduced volume for each ticket
             this.soundManager.play('orderSlideIn', 0.2);
             
-            // Add the animation class
+            // Set initial position with transform before adding the animation class
+            const offsetX = (targetPosition + 1 - targetPosition) * 120; // Calculate pixel offset
+            ticket.style.transition = 'none'; // Disable transitions temporarily
+            ticket.style.transform = `translateX(${offsetX}px) scale(0.8) rotate(5deg)`; // Initial position
+            ticket.style.opacity = '0'; // Start invisible
+            
+            // Force a reflow to apply the initial styles
+            ticket.offsetHeight;
+            
+            // Now add the animation class and set variables
+            ticket.style.transition = ''; // Re-enable transitions
             ticket.classList.add('move-to-slot');
             ticket.style.setProperty('--original-slot', targetPosition + 1); // Current position
             ticket.style.setProperty('--target-slot', targetPosition);     // Target position (one slot left)
@@ -1354,7 +1364,16 @@ class CafeSystem {
         // Play sound for new ticket
         this.soundManager.play('orderSlideIn', 0.35);
         
-        // Make the ticket visible
+        // Set initial position with transform before adding the animation class
+        const offsetX = (4 - 3) * 120; // Calculate pixel offset (from slot 4 to slot 3)
+        newTicket.style.transition = 'none'; // Disable transitions temporarily
+        newTicket.style.transform = `translateX(${offsetX}px) scale(0.8) rotate(5deg)`; // Initial position
+        
+        // Force a reflow to apply the initial styles
+        newTicket.offsetHeight;
+        
+        // Now make the ticket visible and add the animation class
+        newTicket.style.transition = ''; // Re-enable transitions
         newTicket.style.opacity = '1';
         
         // Add the animation class
