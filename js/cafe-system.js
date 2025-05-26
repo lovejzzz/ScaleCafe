@@ -1301,27 +1301,24 @@ class CafeSystem {
             // Play slide-in sound for new order refill with slightly reduced volume
             this.soundManager.play('orderSlideIn', 0.35); // 50% of default 0.7 volume
             
-            // Stagger the animations for a more natural flow
-            // First animate existing tickets to fill the gap if they are after the removed order
+            // Move all tickets together for a more realistic push animation
+            // This creates a physics-based effect where all tickets move as a group
             existingTickets.forEach(ticket => {
                 const position = parseInt(ticket.dataset.originalPosition);
+                // Apply animation to all tickets after the removed one
                 if (position > removedOrderIndex) {
-                    // The ticket immediately after the removed one gets a special animation
-                    if (position === removedOrderIndex + 1) {
-                        ticket.classList.add('shift-left-nearest');
-                        console.log(`Shifting nearest ticket at position ${position} left`);
-                    } else {
-                        ticket.classList.add('shift-left');
-                        console.log(`Shifting ticket at position ${position} left`);
-                    }
+                    // All tickets get the same animation for a unified movement
+                    ticket.classList.add('shift-left');
+                    console.log(`Shifting ticket at position ${position} left as part of group`);
                 }
             });
             
             // Then animate the new ticket to enter from the right after a small delay
+            // This timing creates the illusion that the new ticket is pushing the others
             setTimeout(() => {
                 ticket.classList.remove('fill-gap-entering');
                 ticket.classList.add('fill-gap-animation');
-            }, 150);
+            }, 100);
         }, 200);
         
         // Remove animation classes after animation completes
