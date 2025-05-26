@@ -1195,6 +1195,15 @@ class CafeSystem {
         console.log(`Starting animation for order ID: ${orderId}`);
         console.log(`Orders before removal: ${this.availableOrders.length}`);
         
+        // Get the position of the ticket in the container for gap filling
+        const ticketRect = ticketElement.getBoundingClientRect();
+        const containerRect = this.orderTicketsContainer.getBoundingClientRect();
+        const ticketPosition = {
+            left: ticketRect.left - containerRect.left,
+            top: ticketRect.top - containerRect.top
+        };
+        console.log(`Ticket position: left=${ticketPosition.left}, top=${ticketPosition.top}`);
+        
         // Add checkmark overlay
         const checkmark = document.createElement('div');
         checkmark.className = 'completion-checkmark';
@@ -1214,6 +1223,12 @@ class CafeSystem {
             setTimeout(() => {
                 console.log(`Removing order ${orderId} from availableOrders array`);
                 console.log(`Orders before filter: ${this.availableOrders.length}`);
+                
+                // Find the index of the order being removed
+                const removedOrderIndex = this.availableOrders.findIndex(order => order.id === orderId);
+                console.log(`Removed order index: ${removedOrderIndex}`);
+                
+                // Remove the order from the array
                 this.availableOrders = this.availableOrders.filter(order => order.id !== orderId);
                 console.log(`Orders after filter: ${this.availableOrders.length}`);
                 
@@ -1228,7 +1243,9 @@ class CafeSystem {
                     this.availableOrders.push(newOrder);
                     console.log(`Generated new order: ${newOrder.customerName} (${newOrder.direction})`);
                     console.log(`New available orders count: ${this.availableOrders.length}`);
-                    this.animateNewOrder(newOrder);
+                    
+                    // Animate the new order to fill the gap
+                    this.animateNewOrderToFillGap(newOrder, removedOrderIndex);
                 }
             }, 800);
         }, 1500);
@@ -1256,6 +1273,56 @@ class CafeSystem {
         setTimeout(() => {
             ticket.classList.remove('new-order-bounce');
         }, 1000);
+    }
+    
+    /**
+     * Animate new order to fill the gap left by a completed order
+     * @param {Object} newOrder - The new order to animate
+     * @param {number} removedOrderIndex - The index of the removed order
+     */
+    animateNewOrderToFillGap(newOrder, removedOrderIndex) {
+        const ticket = this.createOrderTicket(newOrder);
+        
+        // First, add the ticket to the DOM but keep it invisible
+        ticket.classList.add('fill-gap-entering');
+        this.orderTicketsContainer.appendChild(ticket);
+        
+        // Play slide-in sound for new order refill
+        this.soundManager.play('orderSlideIn', 0.49); // 70% of default 0.7 volume
+        
+        // Get all existing tickets
+        const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not(.fill-gap-entering)'));
+        console.log(`Existing tickets: ${existingTickets.length}`);
+        
+        // Add data attribute to track the original position
+        existingTickets.forEach((ticket, index) => {
+            ticket.dataset.originalPosition = index;
+        });
+        
+        // Start the animation
+        setTimeout(() => {
+            // Animate existing tickets to fill the gap if they are after the removed order
+            existingTickets.forEach(ticket => {
+                const position = parseInt(ticket.dataset.originalPosition);
+                if (position > removedOrderIndex) {
+                    ticket.classList.add('shift-left');
+                    console.log(`Shifting ticket at position ${position} left`);
+                }
+            });
+            
+            // Animate the new ticket to enter from the right
+            ticket.classList.remove('fill-gap-entering');
+            ticket.classList.add('fill-gap-animation');
+        }, 100);
+        
+        // Remove animation classes after animation completes
+        setTimeout(() => {
+            existingTickets.forEach(ticket => {
+                ticket.classList.remove('shift-left');
+                delete ticket.dataset.originalPosition;
+            });
+            ticket.classList.remove('fill-gap-animation');
+        }, 1200);
     }
     
     /**
