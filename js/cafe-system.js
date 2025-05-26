@@ -1301,19 +1301,39 @@ class CafeSystem {
             // Play slide-in sound for new order refill with slightly reduced volume
             this.soundManager.play('orderSlideIn', 0.35); // 50% of default 0.7 volume
             
-            // Move all tickets together for a more realistic push animation
-            // This creates a physics-based effect where all tickets move as a group
-            existingTickets.forEach(ticket => {
+            // First, create a new container for the tickets that need to move together
+            const ticketsToMove = existingTickets.filter(ticket => {
                 const position = parseInt(ticket.dataset.originalPosition);
-                // Apply animation to all tickets after the removed one
-                if (position > removedOrderIndex) {
-                    // All tickets get the same animation for a unified movement
-                    ticket.classList.add('shift-left');
-                    console.log(`Shifting ticket at position ${position} left as part of group`);
-                }
+                return position > removedOrderIndex;
             });
             
-            // Then animate the new ticket to enter from the right after a small delay
+            // Create a wrapper to ensure synchronized movement
+            if (ticketsToMove.length > 0) {
+                // Create a wrapper div to contain all tickets that need to move
+                const wrapper = document.createElement('div');
+                wrapper.className = 'moving-tickets-wrapper';
+                
+                // Move all tickets that need to shift into this wrapper
+                ticketsToMove.forEach(ticket => {
+                    // Store the original position in the DOM
+                    const parent = ticket.parentNode;
+                    const nextSibling = ticket.nextSibling;
+                    ticket.dataset.originalParent = parent;
+                    ticket.dataset.originalNextSibling = nextSibling;
+                    
+                    // Move to wrapper
+                    wrapper.appendChild(ticket);
+                });
+                
+                // Add the wrapper to the DOM
+                this.orderTicketsContainer.appendChild(wrapper);
+                
+                // Apply the animation to the wrapper (all tickets move as one unit)
+                wrapper.classList.add('shift-left-group');
+                console.log(`Moving ${ticketsToMove.length} tickets as a single unit`);
+            }
+            
+            // Then animate the new ticket to enter from the right
             // This timing creates the illusion that the new ticket is pushing the others
             setTimeout(() => {
                 ticket.classList.remove('fill-gap-entering');
@@ -1321,13 +1341,40 @@ class CafeSystem {
             }, 100);
         }, 200);
         
-        // Remove animation classes after animation completes
+        // Remove animation classes and restore DOM structure after animation completes
         setTimeout(() => {
-            existingTickets.forEach(ticket => {
-                ticket.classList.remove('shift-left');
-                ticket.classList.remove('shift-left-nearest');
-                delete ticket.dataset.originalPosition;
-            });
+            // Find and remove the wrapper if it exists
+            const wrapper = this.orderTicketsContainer.querySelector('.moving-tickets-wrapper');
+            if (wrapper) {
+                // Restore all tickets to their original positions
+                Array.from(wrapper.children).forEach(ticket => {
+                    // Remove animation classes
+                    ticket.classList.remove('shift-left');
+                    ticket.classList.remove('shift-left-nearest');
+                    
+                    // Move back to original position in DOM
+                    this.orderTicketsContainer.appendChild(ticket);
+                    
+                    // Clean up data attributes
+                    delete ticket.dataset.originalParent;
+                    delete ticket.dataset.originalNextSibling;
+                    delete ticket.dataset.originalPosition;
+                });
+                
+                // Remove the wrapper
+                if (wrapper.parentNode) {
+                    wrapper.parentNode.removeChild(wrapper);
+                }
+            } else {
+                // Fallback cleanup if wrapper wasn't created
+                existingTickets.forEach(ticket => {
+                    ticket.classList.remove('shift-left');
+                    ticket.classList.remove('shift-left-nearest');
+                    delete ticket.dataset.originalPosition;
+                });
+            }
+            
+            // Clean up the new ticket
             ticket.classList.remove('fill-gap-animation');
         }, 1500);
     }

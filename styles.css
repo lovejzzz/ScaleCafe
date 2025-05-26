@@ -1014,6 +1014,18 @@ display: none;
     animation: shiftLeftNearest 0.8s ease-out forwards;
 }
 
+/* Wrapper for synchronized movement of multiple tickets */
+.moving-tickets-wrapper {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    position: relative;
+}
+
+.moving-tickets-wrapper.shift-left-group {
+    animation: shiftLeft 0.8s ease-out forwards;
+}
+
 .order-ticket.initial-slide-in {
     animation: initialSlideIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
