@@ -13,6 +13,7 @@ class CafeSystem {
         this.isCooking = false;
         this.isInitialLoad = true; // Track if this is the first time loading orders
         this.cafeOpened = false; // Track if cafe has been opened
+        this.mistakeCount = 0; // Track mistakes for perfect bonus
         
         // Player stats
         this.playerXP = 0;
@@ -547,6 +548,7 @@ class CafeSystem {
                 <button class="open-cafe-btn" id="open-cafe-btn">
                     ☕ Open the Cafe
                 </button>
+                <p class="button-hint">Press Space or any Piano Key</p>
             </div>
         `;
         
@@ -771,6 +773,7 @@ class CafeSystem {
     startCooking() {
         this.currentPosition = 0;
         this.isCooking = true;
+        this.mistakeCount = 0; // Reset mistake count for new order
         this.currentComplexity = this.currentOrder.complexity;
         
         // Clear all note slots
@@ -856,6 +859,7 @@ class CafeSystem {
             // mark the note as incorrect
             if (!playedDirection && expectedDirection) {
                 isCorrect = false;
+                this.mistakeCount++; // Increment mistake count for wrong direction
                 
                 // Show error feedback for wrong direction
                 const errorMessage = document.createElement('div');
@@ -882,6 +886,8 @@ class CafeSystem {
         
         // Strict validation - must match expected note exactly
         if (!isCorrect) {
+            this.mistakeCount++; // Increment mistake count
+            
             // Show error feedback
             const errorMessage = document.createElement('div');
             errorMessage.className = 'error-message';
@@ -941,9 +947,19 @@ class CafeSystem {
         const xpReward = 100 * complexitySettings.xpMultiplier;
         const sellAmount = this.currentOrder.totalSell;
         
+        // Check if order was completed perfectly (no mistakes)
+        const isPerfect = this.mistakeCount === 0;
+        
         // Calculate tip as 15-25% of sell amount
         const tipPercentage = 0.15 + Math.random() * 0.10; // Random between 15% and 25%
-        const tipAmount = sellAmount * tipPercentage;
+        let tipAmount = sellAmount * tipPercentage;
+        let extraTip = 0;
+        
+        // Add perfect bonus (30% extra tip)
+        if (isPerfect) {
+            extraTip = sellAmount * 0.30;
+            tipAmount += extraTip;
+        }
         
         // Total coins earned = sell amount + tip
         const totalCoinsEarned = sellAmount + tipAmount;
@@ -958,7 +974,7 @@ class CafeSystem {
         this.saveProgress();
         
         // Show completion modal
-        this.showOrderComplete(xpReward, sellAmount, tipAmount);
+        this.showOrderComplete(xpReward, sellAmount, tipAmount - extraTip, extraTip, isPerfect);
         
         // Animate order completion and removal
         this.animateOrderCompletion(this.currentOrder.id);
@@ -967,20 +983,37 @@ class CafeSystem {
     /**
      * Show order completion modal
      */
-    showOrderComplete(xpReward, sellAmount, tipAmount) {
+    showOrderComplete(xpReward, sellAmount, baseTipAmount, extraTip, isPerfect) {
         this.xpRewardElement.textContent = xpReward;
         this.sellRewardElement.textContent = sellAmount.toFixed(2);
-        this.tipRewardElement.textContent = tipAmount.toFixed(2);
+        
+        // Handle tip display with perfect bonus
+        if (isPerfect && extraTip > 0) {
+            this.tipRewardElement.innerHTML = `$${baseTipAmount.toFixed(2)}+<span class="burning-text">$${extraTip.toFixed(2)}</span>`;
+        } else {
+            this.tipRewardElement.textContent = baseTipAmount.toFixed(2);
+        }
         
         const completionMessage = document.getElementById('completion-message');
-        const messages = [
-            "Delicious! The customer loved it!",
-            "Perfect! That was exactly what they ordered!",
-            "Amazing! The customer left a great review!",
-            "Wonderful! They said it was the best they've ever had!",
-            "Excellent! The customer was so happy!"
-        ];
-        completionMessage.innerHTML = `<p>${messages[Math.floor(Math.random() * messages.length)]}</p>`;
+        
+        if (isPerfect) {
+            // Show perfect message with stamp
+            completionMessage.innerHTML = `
+                <div class="perfect-completion">
+                    <div class="perfect-stamp">Perfect!</div>
+                    <p>Flawless execution! The customer was amazed!</p>
+                </div>
+            `;
+        } else {
+            const messages = [
+                "Delicious! The customer loved it!",
+                "Great job! That was exactly what they ordered!",
+                "Amazing! The customer left a great review!",
+                "Wonderful! They said it was the best they've ever had!",
+                "Excellent! The customer was so happy!"
+            ];
+            completionMessage.innerHTML = `<p>${messages[Math.floor(Math.random() * messages.length)]}</p>`;
+        }
         
         this.orderCompleteModal.classList.remove('hidden');
     }

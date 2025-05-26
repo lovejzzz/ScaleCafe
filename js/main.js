@@ -43,6 +43,23 @@ document.addEventListener('DOMContentLoaded', () => {
     midiHandler.onNoteEvent((noteName, state, velocity) => {
         // Only process note-on events
         if (state === 'on') {
+            // Check if we should handle button activation instead of note playing
+            if (!cafeSystem.isCooking) {
+                // Try to activate buttons with MIDI notes
+                const openCafeBtn = document.getElementById('open-cafe-btn');
+                if (openCafeBtn && openCafeBtn.offsetParent !== null) {
+                    openCafeBtn.click();
+                    return;
+                }
+                
+                const continueBtn = document.getElementById('continue-cooking-btn');
+                if (continueBtn && !continueBtn.closest('.modal').classList.contains('hidden')) {
+                    continueBtn.click();
+                    return;
+                }
+            }
+            
+            // Handle note playing for cooking
             cafeSystem.handleNotePlayed(noteName);
         }
     });
@@ -52,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize sound toggle
     initSoundToggle(cafeSystem.soundManager);
+    
+    // Initialize keyboard shortcuts for buttons
+    initKeyboardShortcuts(cafeSystem, midiHandler);
     
     // Auto-apply default settings
     setTimeout(() => {
@@ -212,6 +232,50 @@ function initSoundToggle(soundManager) {
         
         // Set initial tooltip
         soundToggle.title = 'Sound enabled - Click to disable';
+    }
+}
+
+/**
+ * Initialize keyboard shortcuts for buttons
+ * @param {CafeSystem} cafeSystem - The cafe system instance
+ * @param {MidiHandler} midiHandler - The MIDI handler instance
+ */
+function initKeyboardShortcuts(cafeSystem, midiHandler) {
+    let spacePressed = false;
+    
+    // Listen for keyboard events
+    document.addEventListener('keydown', (event) => {
+        // Ignore repeat events
+        if (event.repeat) return;
+        
+        // Handle spacebar for buttons
+        if (event.code === 'Space') {
+            event.preventDefault(); // Prevent page scroll
+            spacePressed = true;
+            handleButtonActivation();
+        }
+    });
+    
+    document.addEventListener('keyup', (event) => {
+        if (event.code === 'Space') {
+            spacePressed = false;
+        }
+    });
+    
+    function handleButtonActivation() {
+        // Check for "Open Cafe" button
+        const openCafeBtn = document.getElementById('open-cafe-btn');
+        if (openCafeBtn && openCafeBtn.offsetParent !== null) { // Check if visible
+            openCafeBtn.click();
+            return;
+        }
+        
+        // Check for "Continue Cooking" button
+        const continueBtn = document.getElementById('continue-cooking-btn');
+        if (continueBtn && !continueBtn.closest('.modal').classList.contains('hidden')) {
+            continueBtn.click();
+            return;
+        }
     }
 }
 
