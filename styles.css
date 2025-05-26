@@ -985,13 +985,8 @@ display: none;
     animation: throwAway 0.8s ease-in forwards;
 }
 
-.order-ticket.new-order-entering {
-    transform: translateY(-100px) scale(0.8);
-    opacity: 0;
-}
-
-.order-ticket.new-order-bounce {
-    animation: bounceIn 0.8s ease-out forwards;
+.order-ticket.initial-slide-in {
+    animation: initialSlideIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
 
 /* Fill gap animations */

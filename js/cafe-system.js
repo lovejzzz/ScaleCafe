@@ -1195,6 +1195,10 @@ class CafeSystem {
         console.log(`Starting animation for order ID: ${orderId}`);
         console.log(`Orders before removal: ${this.availableOrders.length}`);
         
+        // Find the index of the order being removed
+        const removedOrderIndex = this.availableOrders.findIndex(order => order.id === orderId);
+        if (removedOrderIndex === -1) return;
+        
         // Get the position of the ticket in the container for gap filling
         const ticketRect = ticketElement.getBoundingClientRect();
         const containerRect = this.orderTicketsContainer.getBoundingClientRect();
@@ -1219,14 +1223,10 @@ class CafeSystem {
         setTimeout(() => {
             ticketElement.classList.add('completed');
             
-            // Remove from available orders and DOM after animation
+            // Remove from available orders after animation
             setTimeout(() => {
                 console.log(`Removing order ${orderId} from availableOrders array`);
                 console.log(`Orders before filter: ${this.availableOrders.length}`);
-                
-                // Find the index of the order being removed
-                const removedOrderIndex = this.availableOrders.findIndex(order => order.id === orderId);
-                console.log(`Removed order index: ${removedOrderIndex}`);
                 
                 // Remove the order from the array
                 this.availableOrders = this.availableOrders.filter(order => order.id !== orderId);
@@ -1237,16 +1237,14 @@ class CafeSystem {
                 }
                 
                 // Add a new order to maintain exactly 4 orders
-                if (this.availableOrders.length < 4) {
-                    console.log(`Adding new order to maintain 4 orders`);
-                    const newOrder = this.generateRandomOrder();
-                    this.availableOrders.push(newOrder);
-                    console.log(`Generated new order: ${newOrder.customerName} (${newOrder.direction})`);
-                    console.log(`New available orders count: ${this.availableOrders.length}`);
-                    
-                    // Animate the new order to fill the gap
-                    this.animateNewOrderToFillGap(newOrder, removedOrderIndex);
-                }
+                console.log(`Adding new order to maintain 4 orders`);
+                const newOrder = this.generateRandomOrder();
+                this.availableOrders.push(newOrder);
+                console.log(`Generated new order: ${newOrder.customerName} (${newOrder.direction})`);
+                console.log(`New available orders count: ${this.availableOrders.length}`);
+                
+                // Animate the new order to fill the gap with physics-based collision
+                this.animateNewOrderToFillGap(newOrder, removedOrderIndex);
             }, 800);
         }, 1500);
     }
@@ -1281,102 +1279,228 @@ class CafeSystem {
      * @param {number} removedOrderIndex - The index of the removed order
      */
     animateNewOrderToFillGap(newOrder, removedOrderIndex) {
-        const ticket = this.createOrderTicket(newOrder);
-        
-        // First, add the ticket to the DOM but keep it invisible
-        ticket.classList.add('fill-gap-entering');
-        this.orderTicketsContainer.appendChild(ticket);
+        // Create the new ticket but keep it invisible initially
+        const newTicket = this.createOrderTicket(newOrder);
+        newTicket.style.opacity = '0';
+        newTicket.style.transform = 'translateX(150px)';
+        newTicket.style.transition = 'none';
+        this.orderTicketsContainer.appendChild(newTicket);
         
         // Get all existing tickets
-        const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not(.fill-gap-entering)'));
+        const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not([style*="opacity: 0"])'));
         console.log(`Existing tickets: ${existingTickets.length}`);
         
-        // Add data attribute to track the original position
+        // Setup physics properties for each ticket
+        const ticketPhysics = [];
+        const gapPosition = this.getTicketPositionInGap(removedOrderIndex, existingTickets);
+        
+        // Initialize physics properties for existing tickets
         existingTickets.forEach((ticket, index) => {
-            ticket.dataset.originalPosition = index;
+            const rect = ticket.getBoundingClientRect();
+            const isAfterGap = index >= removedOrderIndex;
+            
+            // Store original styles to restore later
+            const originalTransform = ticket.style.transform;
+            const originalTransition = ticket.style.transition;
+            
+            // Prepare for animation
+            ticket.style.transition = 'none';
+            ticket.style.zIndex = isAfterGap ? '2' : '1';
+            
+            ticketPhysics.push({
+                element: ticket,
+                x: rect.left,
+                targetX: isAfterGap ? rect.left - 120 : rect.left, // Target position (120px left if after gap)
+                velocity: 0,
+                mass: 1,
+                friction: 0.85,
+                springStrength: 0.1,
+                originalTransform,
+                originalTransition
+            });
         });
         
-        // Add a small delay before starting animations for a more natural flow
+        // Setup physics for the new ticket
+        const newTicketRect = newTicket.getBoundingClientRect();
+        const newTicketPhysics = {
+            element: newTicket,
+            x: newTicketRect.left + 150, // Start off-screen to the right
+            targetX: gapPosition.x,      // Target position is the gap
+            velocity: -8,                // Initial velocity (moving left)
+            mass: 1.2,                   // Slightly heavier for better impact
+            friction: 0.9,
+            springStrength: 0.08,
+            originalTransform: '',
+            originalTransition: ''
+        };
+        
+        // Force a reflow to apply initial styles
+        newTicket.offsetHeight;
+        
+        // Add a small delay before starting the physics simulation
         setTimeout(() => {
-            // Play slide-in sound for new order refill with slightly reduced volume
-            this.soundManager.play('orderSlideIn', 0.35); // 50% of default 0.7 volume
+            // Play slide-in sound
+            this.soundManager.play('orderSlideIn', 0.35);
             
-            // First, create a new container for the tickets that need to move together
-            const ticketsToMove = existingTickets.filter(ticket => {
-                const position = parseInt(ticket.dataset.originalPosition);
-                return position > removedOrderIndex;
+            // Make the new ticket visible
+            newTicket.style.opacity = '1';
+            newTicket.style.transition = 'opacity 0.3s ease-out';
+            
+            // Start the physics animation
+            this.runPhysicsAnimation(ticketPhysics, newTicketPhysics);
+        }, 200);
+    }
+    
+    /**
+     * Calculate the position where the gap is located
+     */
+    getTicketPositionInGap(removedOrderIndex, existingTickets) {
+        // If it's the first position, estimate based on the second ticket's position
+        if (removedOrderIndex === 0 && existingTickets.length > 0) {
+            const firstTicket = existingTickets[0];
+            const rect = firstTicket.getBoundingClientRect();
+            return { x: rect.left - 120, y: rect.top };
+        }
+        // If it's the last position, estimate based on the previous ticket's position
+        else if (removedOrderIndex >= existingTickets.length) {
+            const lastTicket = existingTickets[existingTickets.length - 1];
+            const rect = lastTicket.getBoundingClientRect();
+            return { x: rect.left + 120, y: rect.top };
+        }
+        // Otherwise, use the position of the ticket at the removedOrderIndex
+        else {
+            const ticket = existingTickets[removedOrderIndex];
+            const rect = ticket.getBoundingClientRect();
+            return { x: rect.left, y: rect.top };
+        }
+    }
+    
+    /**
+     * Run the physics-based animation for the tickets
+     */
+    runPhysicsAnimation(ticketPhysics, newTicketPhysics) {
+        let animationFrameId;
+        let lastTime = performance.now();
+        let isColliding = false;
+        let collisionSoundPlayed = false;
+        
+        // Add the new ticket to the physics objects
+        const allPhysics = [...ticketPhysics, newTicketPhysics];
+        
+        // Animation function
+        const animate = (currentTime) => {
+            const deltaTime = (currentTime - lastTime) / 16; // Normalize to ~60fps
+            lastTime = currentTime;
+            
+            // Update physics for all tickets
+            let allSettled = true;
+            
+            // First update the new ticket (the one pushing others)
+            const pusher = newTicketPhysics;
+            
+            // Apply spring physics to the new ticket
+            const springForce = (pusher.targetX - pusher.x) * pusher.springStrength;
+            pusher.velocity += springForce / pusher.mass;
+            pusher.velocity *= pusher.friction;
+            pusher.x += pusher.velocity * deltaTime;
+            
+            // Check if the new ticket has settled
+            if (Math.abs(pusher.velocity) > 0.1 || Math.abs(pusher.targetX - pusher.x) > 1) {
+                allSettled = false;
+            }
+            
+            // Update the new ticket's position
+            pusher.element.style.transform = `translateX(${pusher.x - newTicketPhysics.targetX}px)`;
+            
+            // Now update all existing tickets
+            ticketPhysics.forEach((physics, i) => {
+                // Apply spring physics
+                const springForce = (physics.targetX - physics.x) * physics.springStrength;
+                physics.velocity += springForce / physics.mass;
+                
+                // Check for collision with the new ticket
+                if (i >= removedOrderIndex) {
+                    const distance = pusher.x - physics.x - 120; // 120px is approximate ticket width
+                    
+                    // If collision detected
+                    if (distance < 5 && pusher.velocity < 0) {
+                        // Transfer momentum (simplified physics)
+                        const impactVelocity = pusher.velocity * 0.8;
+                        physics.velocity += impactVelocity;
+                        pusher.velocity *= 0.5; // Slow down the pusher after impact
+                        
+                        // Play collision sound once
+                        if (!collisionSoundPlayed) {
+                            this.soundManager.play('orderSlideIn', 0.2);
+                            collisionSoundPlayed = true;
+                        }
+                        
+                        isColliding = true;
+                    }
+                }
+                
+                // Apply friction
+                physics.velocity *= physics.friction;
+                
+                // Update position
+                physics.x += physics.velocity * deltaTime;
+                
+                // Check if this ticket has settled
+                if (Math.abs(physics.velocity) > 0.1 || Math.abs(physics.targetX - physics.x) > 1) {
+                    allSettled = false;
+                }
+                
+                // Update the DOM element
+                physics.element.style.transform = `translateX(${physics.x - physics.targetX}px)`;
             });
             
-            // Create a wrapper to ensure synchronized movement
-            if (ticketsToMove.length > 0) {
-                // Create a wrapper div to contain all tickets that need to move
-                const wrapper = document.createElement('div');
-                wrapper.className = 'moving-tickets-wrapper';
-                
-                // Move all tickets that need to shift into this wrapper
-                ticketsToMove.forEach(ticket => {
-                    // Store the original position in the DOM
-                    const parent = ticket.parentNode;
-                    const nextSibling = ticket.nextSibling;
-                    ticket.dataset.originalParent = parent;
-                    ticket.dataset.originalNextSibling = nextSibling;
-                    
-                    // Move to wrapper
-                    wrapper.appendChild(ticket);
-                });
-                
-                // Add the wrapper to the DOM
-                this.orderTicketsContainer.appendChild(wrapper);
-                
-                // Apply the animation to the wrapper (all tickets move as one unit)
-                wrapper.classList.add('shift-left-group');
-                console.log(`Moving ${ticketsToMove.length} tickets as a single unit`);
-            }
-            
-            // Then animate the new ticket to enter from the right
-            // This timing creates the illusion that the new ticket is pushing the others
-            setTimeout(() => {
-                ticket.classList.remove('fill-gap-entering');
-                ticket.classList.add('fill-gap-animation');
-            }, 100);
-        }, 200);
-        
-        // Remove animation classes and restore DOM structure after animation completes
-        setTimeout(() => {
-            // Find and remove the wrapper if it exists
-            const wrapper = this.orderTicketsContainer.querySelector('.moving-tickets-wrapper');
-            if (wrapper) {
-                // Restore all tickets to their original positions
-                Array.from(wrapper.children).forEach(ticket => {
-                    // Remove animation classes
-                    ticket.classList.remove('shift-left');
-                    ticket.classList.remove('shift-left-nearest');
-                    
-                    // Move back to original position in DOM
-                    this.orderTicketsContainer.appendChild(ticket);
-                    
-                    // Clean up data attributes
-                    delete ticket.dataset.originalParent;
-                    delete ticket.dataset.originalNextSibling;
-                    delete ticket.dataset.originalPosition;
-                });
-                
-                // Remove the wrapper
-                if (wrapper.parentNode) {
-                    wrapper.parentNode.removeChild(wrapper);
-                }
+            // Continue the animation if not all tickets have settled
+            if (!allSettled) {
+                animationFrameId = requestAnimationFrame(animate);
             } else {
-                // Fallback cleanup if wrapper wasn't created
-                existingTickets.forEach(ticket => {
-                    ticket.classList.remove('shift-left');
-                    ticket.classList.remove('shift-left-nearest');
-                    delete ticket.dataset.originalPosition;
-                });
+                // Animation complete, reset all tickets to their final positions
+                this.finalizeTicketPositions(ticketPhysics, newTicketPhysics);
             }
+        };
+        
+        // Start the animation
+        animationFrameId = requestAnimationFrame(animate);
+        
+        // Safety cleanup after 2 seconds in case animation doesn't settle
+        setTimeout(() => {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                this.finalizeTicketPositions(ticketPhysics, newTicketPhysics);
+            }
+        }, 2000);
+    }
+    
+    /**
+     * Finalize the positions of all tickets after animation
+     */
+    finalizeTicketPositions(ticketPhysics, newTicketPhysics) {
+        // Reset all existing tickets to their target positions with smooth transitions
+        ticketPhysics.forEach(physics => {
+            physics.element.style.transition = 'transform 0.3s ease-out';
+            physics.element.style.transform = 'translateX(0)';
             
-            // Clean up the new ticket
-            ticket.classList.remove('fill-gap-animation');
-        }, 1500);
+            // Clean up after transition
+            setTimeout(() => {
+                physics.element.style.transform = physics.originalTransform;
+                physics.element.style.transition = physics.originalTransition;
+                physics.element.style.zIndex = '';
+            }, 300);
+        });
+        
+        // Reset the new ticket to its target position
+        newTicketPhysics.element.style.transition = 'transform 0.3s ease-out';
+        newTicketPhysics.element.style.transform = 'translateX(0)';
+        
+        // Clean up after transition
+        setTimeout(() => {
+            newTicketPhysics.element.style.transform = '';
+            newTicketPhysics.element.style.transition = '';
+        }, 300);
     }
     
     /**
