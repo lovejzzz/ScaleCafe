@@ -1043,6 +1043,11 @@ class CafeSystem {
         console.log(`Available orders count: ${this.availableOrders.length}`);
         console.log(`Available orders:`, this.availableOrders.map(o => `${o.customerName} (${o.direction})`));
         
+        // Automatically select the leftmost (first) available order
+        setTimeout(() => {
+            this.autoSelectNextOrder();
+        }, 500); // Small delay to ensure UI has updated
+        
         // Note: We no longer add new orders here
         // New orders are now added in animateOrderCompletion after the old order is removed
         // This ensures we maintain exactly 4 orders at all times
@@ -1289,6 +1294,25 @@ class CafeSystem {
         setTimeout(() => {
             ticket.classList.remove('new-order-bounce');
         }, 1000);
+    }
+    
+    /**
+     * Automatically select the leftmost (first) available order
+     */
+    autoSelectNextOrder() {
+        if (this.availableOrders.length > 0) {
+            const nextOrder = this.availableOrders[0]; // Get the first (leftmost) order
+            console.log(`=== AUTO-SELECTING NEXT ORDER ===`);
+            console.log(`Auto-selecting: ${nextOrder.customerName} (${nextOrder.direction})`);
+            
+            // Play the take order sound
+            this.soundManager.play('takeOrder', 0.28); // 40% of default 0.7 volume
+            
+            // Select the order
+            this.selectOrder(nextOrder);
+        } else {
+            console.log(`No orders available for auto-selection`);
+        }
     }
     
     /**
