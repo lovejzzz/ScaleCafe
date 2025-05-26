@@ -1010,6 +1010,10 @@ display: none;
     animation: shiftLeft 0.8s ease-out forwards;
 }
 
+.order-ticket.shift-left-nearest {
+    animation: shiftLeftNearest 0.8s ease-out forwards;
+}
+
 .order-ticket.initial-slide-in {
     animation: initialSlideIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
 }
@@ -1113,13 +1117,28 @@ display: none;
         transform: translateX(0);
     }
     40% {
-        transform: translateX(-100px);
+        transform: translateX(-80px);
     }
     70% {
-        transform: translateX(-95px);
+        transform: translateX(-75px);
     }
     100% {
-        transform: translateX(-100px);
+        transform: translateX(-80px);
+    }
+}
+
+@keyframes shiftLeftNearest {
+    0% {
+        transform: translateX(0);
+    }
+    40% {
+        transform: translateX(-80px);
+    }
+    70% {
+        transform: translateX(-75px);
+    }
+    100% {
+        transform: translateX(-80px);
     }
 }
 

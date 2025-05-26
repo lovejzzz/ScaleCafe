@@ -1306,8 +1306,14 @@ class CafeSystem {
             existingTickets.forEach(ticket => {
                 const position = parseInt(ticket.dataset.originalPosition);
                 if (position > removedOrderIndex) {
-                    ticket.classList.add('shift-left');
-                    console.log(`Shifting ticket at position ${position} left`);
+                    // The ticket immediately after the removed one gets a special animation
+                    if (position === removedOrderIndex + 1) {
+                        ticket.classList.add('shift-left-nearest');
+                        console.log(`Shifting nearest ticket at position ${position} left`);
+                    } else {
+                        ticket.classList.add('shift-left');
+                        console.log(`Shifting ticket at position ${position} left`);
+                    }
                 }
             });
             
@@ -1322,6 +1328,7 @@ class CafeSystem {
         setTimeout(() => {
             existingTickets.forEach(ticket => {
                 ticket.classList.remove('shift-left');
+                ticket.classList.remove('shift-left-nearest');
                 delete ticket.dataset.originalPosition;
             });
             ticket.classList.remove('fill-gap-animation');
