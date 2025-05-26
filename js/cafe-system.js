@@ -1195,19 +1195,6 @@ class CafeSystem {
         console.log(`Starting animation for order ID: ${orderId}`);
         console.log(`Orders before removal: ${this.availableOrders.length}`);
         
-        // Find the index of the order being removed
-        const removedOrderIndex = this.availableOrders.findIndex(order => order.id === orderId);
-        if (removedOrderIndex === -1) return;
-        
-        // Get the position of the ticket in the container for gap filling
-        const ticketRect = ticketElement.getBoundingClientRect();
-        const containerRect = this.orderTicketsContainer.getBoundingClientRect();
-        const ticketPosition = {
-            left: ticketRect.left - containerRect.left,
-            top: ticketRect.top - containerRect.top
-        };
-        console.log(`Ticket position: left=${ticketPosition.left}, top=${ticketPosition.top}`);
-        
         // Add checkmark overlay
         const checkmark = document.createElement('div');
         checkmark.className = 'completion-checkmark';
@@ -1223,12 +1210,10 @@ class CafeSystem {
         setTimeout(() => {
             ticketElement.classList.add('completed');
             
-            // Remove from available orders after animation
+            // Remove from available orders and DOM after animation
             setTimeout(() => {
                 console.log(`Removing order ${orderId} from availableOrders array`);
                 console.log(`Orders before filter: ${this.availableOrders.length}`);
-                
-                // Remove the order from the array
                 this.availableOrders = this.availableOrders.filter(order => order.id !== orderId);
                 console.log(`Orders after filter: ${this.availableOrders.length}`);
                 
@@ -1237,14 +1222,14 @@ class CafeSystem {
                 }
                 
                 // Add a new order to maintain exactly 4 orders
-                console.log(`Adding new order to maintain 4 orders`);
-                const newOrder = this.generateRandomOrder();
-                this.availableOrders.push(newOrder);
-                console.log(`Generated new order: ${newOrder.customerName} (${newOrder.direction})`);
-                console.log(`New available orders count: ${this.availableOrders.length}`);
-                
-                // Animate the new order to fill the gap with physics-based collision
-                this.animateNewOrderToFillGap(newOrder, removedOrderIndex);
+                if (this.availableOrders.length < 4) {
+                    console.log(`Adding new order to maintain 4 orders`);
+                    const newOrder = this.generateRandomOrder();
+                    this.availableOrders.push(newOrder);
+                    console.log(`Generated new order: ${newOrder.customerName} (${newOrder.direction})`);
+                    console.log(`New available orders count: ${this.availableOrders.length}`);
+                    this.animateNewOrder(newOrder);
+                }
             }, 800);
         }, 1500);
     }
@@ -1271,128 +1256,6 @@ class CafeSystem {
         setTimeout(() => {
             ticket.classList.remove('new-order-bounce');
         }, 1000);
-    }
-    
-    /**
-     * Animate new order to fill the gap left by a completed order
-     * @param {Object} newOrder - The new order to animate
-     * @param {number} removedOrderIndex - The index of the removed order
-     */
-    animateNewOrderToFillGap(newOrder, removedOrderIndex) {
-        // Create the new ticket but keep it invisible initially
-        const newTicket = this.createOrderTicket(newOrder);
-        newTicket.style.opacity = '0';  // Start invisible
-        this.orderTicketsContainer.appendChild(newTicket);
-        
-        // Get all existing tickets
-        const existingTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket:not(.completed):not([style*="opacity: 0"])'));
-        console.log(`Existing tickets: ${existingTickets.length}`);
-        
-        // Filter tickets that need to move (those after the removed one)
-        const ticketsToMove = existingTickets.filter((ticket, index) => index >= removedOrderIndex);
-        console.log(`Tickets to move: ${ticketsToMove.length}`);
-        
-        // Add a small delay before starting animations for a more natural flow
-        setTimeout(() => {
-            // Animate tickets one by one with cascading delays
-            this.animateTicketsSequentially(ticketsToMove, removedOrderIndex, () => {
-                // After all existing tickets have moved, animate the new ticket
-                this.animateNewTicketEntry(newTicket);
-            });
-        }, 200);
-    }
-    
-    /**
-     * Animate tickets one by one in sequence
-     */
-    animateTicketsSequentially(tickets, removedOrderIndex, onComplete) {
-        if (tickets.length === 0) {
-            if (onComplete) onComplete();
-            return;
-        }
-        
-        // Start with the first ticket (closest to the gap)
-        let currentIndex = 0;
-        
-        const animateNext = () => {
-            if (currentIndex >= tickets.length) {
-                if (onComplete) onComplete();
-                return;
-            }
-            
-            const ticket = tickets[currentIndex];
-            const targetPosition = removedOrderIndex + currentIndex;
-            
-            // Play slide-in sound with reduced volume for each ticket
-            this.soundManager.play('orderSlideIn', 0.2);
-            
-            // Set initial position with transform before adding the animation class
-            const offsetX = (targetPosition + 1 - targetPosition) * 120; // Calculate pixel offset
-            ticket.style.transition = 'none'; // Disable transitions temporarily
-            ticket.style.transform = `translateX(${offsetX}px) scale(0.8) rotate(5deg)`; // Initial position
-            ticket.style.opacity = '0'; // Start invisible
-            
-            // Force a reflow to apply the initial styles
-            ticket.offsetHeight;
-            
-            // Now add the animation class and set variables
-            ticket.style.transition = ''; // Re-enable transitions
-            ticket.classList.add('move-to-slot');
-            ticket.style.setProperty('--original-slot', targetPosition + 1); // Current position
-            ticket.style.setProperty('--target-slot', targetPosition);     // Target position (one slot left)
-            
-            // Set up listener for animation end to trigger the next ticket
-            const animationEndHandler = () => {
-                ticket.removeEventListener('animationend', animationEndHandler);
-                currentIndex++;
-                
-                // Short delay before animating the next ticket
-                setTimeout(animateNext, 150);
-            };
-            
-            ticket.addEventListener('animationend', animationEndHandler);
-        };
-        
-        // Start the animation sequence
-        animateNext();
-    }
-    
-    /**
-     * Animate the new ticket entry
-     */
-    animateNewTicketEntry(newTicket) {
-        // Play sound for new ticket
-        this.soundManager.play('orderSlideIn', 0.35);
-        
-        // Set initial position with transform before adding the animation class
-        const offsetX = (4 - 3) * 120; // Calculate pixel offset (from slot 4 to slot 3)
-        newTicket.style.transition = 'none'; // Disable transitions temporarily
-        newTicket.style.transform = `translateX(${offsetX}px) scale(0.8) rotate(5deg)`; // Initial position
-        
-        // Force a reflow to apply the initial styles
-        newTicket.offsetHeight;
-        
-        // Now make the ticket visible and add the animation class
-        newTicket.style.transition = ''; // Re-enable transitions
-        newTicket.style.opacity = '1';
-        
-        // Add the animation class
-        newTicket.classList.add('move-to-slot');
-        newTicket.style.setProperty('--original-slot', '4'); // Start from off-screen (position 4)
-        newTicket.style.setProperty('--target-slot', '3');  // Move to position 3 (last visible slot)
-        
-        // Clean up after animation completes
-        newTicket.addEventListener('animationend', () => {
-            setTimeout(() => {
-                // Clean up all tickets
-                const allTickets = Array.from(this.orderTicketsContainer.querySelectorAll('.order-ticket.move-to-slot'));
-                allTickets.forEach(ticket => {
-                    ticket.classList.remove('move-to-slot');
-                    ticket.style.removeProperty('--original-slot');
-                    ticket.style.removeProperty('--target-slot');
-                });
-            }, 100);
-        });
     }
     
     /**

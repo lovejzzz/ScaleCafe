@@ -985,36 +985,13 @@ display: none;
     animation: throwAway 0.8s ease-in forwards;
 }
 
-.order-ticket.initial-slide-in {
-    animation: initialSlideIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+.order-ticket.new-order-entering {
+    transform: translateY(-100px) scale(0.8);
+    opacity: 0;
 }
 
-/* Slot-based animations for order tickets */
-@keyframes moveToSlot {
-    0% {
-        transform: translateX(120px) scale(0.8) rotate(5deg);
-        opacity: 0;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    40% {
-        transform: translateX(30px) scale(0.95) rotate(-1deg);
-        opacity: 0.7;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-    70% {
-        transform: translateX(-10px) scale(1.02) rotate(1deg);
-        opacity: 0.9;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    }
-    100% {
-        transform: translateX(0) scale(1) rotate(-1deg);
-        opacity: 1;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-}
-
-.order-ticket.move-to-slot {
-    animation: moveToSlot 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+.order-ticket.new-order-bounce {
+    animation: bounceIn 0.8s ease-out forwards;
 }
 
 .order-ticket.initial-slide-in {
@@ -1082,86 +1059,22 @@ display: none;
     40% {
         transform: translateX(30px) scale(0.95) rotate(-1deg);
         opacity: 0.7;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: -8px 8px 20px rgba(0, 0, 0, 0.2);
     }
     70% {
-        transform: translateX(-10px) scale(1.02) rotate(1deg);
+        transform: translateX(-15px) scale(1.02) rotate(1deg);
         opacity: 0.9;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: 5px 10px 25px rgba(0, 0, 0, 0.25);
+    }
+    90% {
+        transform: translateX(5px) scale(0.99) rotate(-0.5deg);
+        opacity: 0.95;
+        box-shadow: -2px 6px 15px rgba(0, 0, 0, 0.15);
     }
     100% {
-        transform: translateX(0) scale(1) rotate(-1deg);
+        transform: translateX(0) scale(1) rotate(0deg);
         opacity: 1;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-}
-
-@keyframes fillGapAnimation {
-    0% {
-        transform: translateX(120px) scale(0.95) rotate(1deg);
-        opacity: 0;
-    }
-    20% {
-        transform: translateX(30px) scale(0.97) rotate(0.5deg);
-        opacity: 0.6;
-    }
-    40% {
-        transform: translateX(5px) scale(0.99) rotate(0deg);
-        opacity: 0.8;
-    }
-    60% {
-        transform: translateX(-5px) scale(1.01) rotate(-0.5deg);
-        opacity: 0.9;
-    }
-    80% {
-        transform: translateX(0) scale(1) rotate(0deg);
-        opacity: 1;
-    }
-    100% {
-        transform: translateX(0) scale(1) rotate(0deg);
-        opacity: 1;
-    }
-}
-
-@keyframes shiftLeft {
-    0% {
-        transform: translateX(0);
-    }
-    20% {
-        transform: translateX(-90px);
-    }
-    40% {
-        transform: translateX(-80px);
-    }
-    60% {
-        transform: translateX(-85px);
-    }
-    80% {
-        transform: translateX(-80px);
-    }
-    100% {
-        transform: translateX(-80px);
-    }
-}
-
-@keyframes shiftLeftNearest {
-    0% {
-        transform: translateX(0);
-    }
-    20% {
-        transform: translateX(-90px);
-    }
-    40% {
-        transform: translateX(-80px);
-    }
-    60% {
-        transform: translateX(-85px);
-    }
-    80% {
-        transform: translateX(-80px);
-    }
-    100% {
-        transform: translateX(-80px);
     }
 }
 
