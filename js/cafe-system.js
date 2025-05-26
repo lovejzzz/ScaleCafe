@@ -1005,12 +1005,16 @@ class CafeSystem {
             slot.className = 'note-slot';
         });
         
-        // Always generate a new order to keep the board filled (if under 4)
-        if (this.availableOrders.length < 4) {
-            const newOrder = this.generateRandomOrder();
-            this.availableOrders.push(newOrder);
-            this.animateNewOrder(newOrder);
-        }
+        // Debug: Log current state
+        console.log(`=== FINISH ORDER DEBUG ===`);
+        console.log(`Available orders count: ${this.availableOrders.length}`);
+        console.log(`Available orders:`, this.availableOrders.map(o => `${o.customerName} (${o.direction})`));
+        
+        // Note: We no longer add new orders here
+        // New orders are now added in animateOrderCompletion after the old order is removed
+        // This ensures we maintain exactly 4 orders at all times
+        console.log(`Not generating new orders here - will be handled after animation completes`);
+
     }
     
     /**
@@ -1187,6 +1191,10 @@ class CafeSystem {
         const ticketElement = document.querySelector(`[data-order-id="${orderId}"]`);
         if (!ticketElement) return;
         
+        console.log(`=== ANIMATE ORDER COMPLETION ===`);
+        console.log(`Starting animation for order ID: ${orderId}`);
+        console.log(`Orders before removal: ${this.availableOrders.length}`);
+        
         // Add checkmark overlay
         const checkmark = document.createElement('div');
         checkmark.className = 'completion-checkmark';
@@ -1204,9 +1212,23 @@ class CafeSystem {
             
             // Remove from available orders and DOM after animation
             setTimeout(() => {
+                console.log(`Removing order ${orderId} from availableOrders array`);
+                console.log(`Orders before filter: ${this.availableOrders.length}`);
                 this.availableOrders = this.availableOrders.filter(order => order.id !== orderId);
+                console.log(`Orders after filter: ${this.availableOrders.length}`);
+                
                 if (ticketElement.parentNode) {
                     ticketElement.parentNode.removeChild(ticketElement);
+                }
+                
+                // Add a new order to maintain exactly 4 orders
+                if (this.availableOrders.length < 4) {
+                    console.log(`Adding new order to maintain 4 orders`);
+                    const newOrder = this.generateRandomOrder();
+                    this.availableOrders.push(newOrder);
+                    console.log(`Generated new order: ${newOrder.customerName} (${newOrder.direction})`);
+                    console.log(`New available orders count: ${this.availableOrders.length}`);
+                    this.animateNewOrder(newOrder);
                 }
             }, 800);
         }, 1500);
