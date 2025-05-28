@@ -100,6 +100,16 @@ When transitioning from a C major scale ending on C to a G major scale:
 
 ### May 28, 2025
 
+#### Order Completion Modal Redesign
+- **Receipt-Style Layout**: Redesigned the order completion modal with a receipt-style layout
+  - Added cafe name, tagline, date, and time at the top
+  - Included customer name and order direction
+  - Listed dishes with names, scales, and prices
+  - Displayed subtotal, multipliers, tips, and total amount
+- **Simplified Information**: Streamlined the display of complexity and serving style (e.g., 'Complex' instead of 'Complexity (elite)')
+- **Perfect Order Indicator**: Repositioned the 'Perfect!' stamp to overlap the thank you message for better visual appeal
+- **Dynamic Calculations**: Updated total amount to include tips for clearer financial summary
+
 #### Economy System Refinement
 - **Revised Menu Prices**: Updated all dish prices across all scale types for better game balance
   - Major Scales (Coffee): Adjusted to range from $3.00-$4.50 with an average of ~$3.73

@@ -75,10 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Auto-apply default settings
     setTimeout(() => {
-        cafeSystem.setAvailableScales(['major', 'harmonicMinor']); // Coffee and Bakery
-        cafeSystem.currentComplexity = 'elite'; // Set default complexity to Complex
+        cafeSystem.setAvailableScales(['major']); // Only Coffee Menu
+        cafeSystem.currentComplexity = 'normal'; // Set default complexity to Simple
         cafeSystem.currentServingStyle = 'quarter'; // Set default serving style to Quarter
         cafeSystem.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
+        
+        // Initialize note slots based on current serving style before generating orders
+        cafeSystem.generateNoteSlots();
+        
         cafeSystem.generateInitialOrders(); // Use the special initial method
     }, 100); // Reduced delay to make animation start sooner
 });
@@ -97,8 +101,8 @@ function initMenuSettings(cafeSystem) {
     const complexityDescription = document.getElementById('complexity-description');
     
     // Track selected dishes, complexity, and serving style
-    const selectedDishes = new Set(['major', 'harmonicMinor']); // Start with Coffee and Bakery selected
-    let selectedComplexity = 'elite'; // Default complexity is Complex
+    const selectedDishes = new Set(['major']); // Start with only Coffee Menu selected
+    let selectedComplexity = 'normal'; // Default complexity is Simple
     let selectedServingStyle = 'quarter'; // Default serving style is Quarter
     
     // Define complexity descriptions with multipliers

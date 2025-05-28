@@ -1090,17 +1090,29 @@ class CafeSystem {
     }
     
     /**
-     * Show order completion modal
+     * Show order completion modal with receipt-style layout
      */
     showOrderComplete(xpReward, sellAmount, baseTipAmount, extraTip, isPerfect) {
-        this.xpRewardElement.textContent = xpReward;
-        this.sellRewardElement.textContent = sellAmount.toFixed(2);
+        this.orderCompleteModal.classList.remove('hidden');
+        
+        // Perfect stamp is now in the thank you message area of the receipt
+        // Remove any existing perfect stamp from the modal title
+        const modalTitle = this.orderCompleteModal.querySelector('h2');
+        const existingStamp = modalTitle?.querySelector('.perfect-completion');
+        if (existingStamp) {
+            existingStamp.remove();
+        }
+        
+        // Store reward values for the receipt
+        const xpRewardValue = xpReward;
+        const sellRewardValue = sellAmount.toFixed(2);
         
         // Handle tip display with perfect bonus
+        let tipDisplay = '';
         if (isPerfect && extraTip > 0) {
-            this.tipRewardElement.innerHTML = `$${baseTipAmount.toFixed(2)}+<span class="burning-text">$${extraTip.toFixed(2)}</span>`;
+            tipDisplay = `$${baseTipAmount.toFixed(2)}+<span class="burning-text">$${extraTip.toFixed(2)}</span>`;
         } else {
-            this.tipRewardElement.textContent = baseTipAmount.toFixed(2);
+            tipDisplay = `$${baseTipAmount.toFixed(2)}`;
         }
         
         const completionMessage = document.getElementById('completion-message');
@@ -1108,26 +1120,118 @@ class CafeSystem {
         // Get the customer name from the current order
         const customerName = this.currentOrder.customerName;
         
-        if (isPerfect) {
-            // Show perfect message with stamp
-            completionMessage.innerHTML = `
-                <div class="perfect-completion">
-                    <div class="perfect-stamp">Perfect!</div>
-                    <p>Flawless execution! ${customerName} was amazed!</p>
+        // Get current date and time for receipt
+        const now = new Date();
+        const dateString = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+        const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        
+        // Generate receipt content
+        let receiptContent = `
+            <div class="receipt">
+                <div class="receipt-header">
+                    <h3>Scale Cafe</h3>
+                    <p>Where Music Meets Flavor</p>
+                    <div class="receipt-datetime">
+                        <p>${dateString}</p>
+                        <p>${timeString}</p>
+                    </div>
+                </div>
+                
+                <div class="receipt-customer">
+                    <p>Customer: ${customerName}</p>
+                    <p>Order #: ${this.currentOrder.direction.charAt(0).toUpperCase() + this.currentOrder.direction.slice(1)}</p>
+                </div>
+                
+                <div class="receipt-items">
+                    <div class="receipt-divider"></div>
+                    <div class="receipt-column-headers">
+                        <span>Item</span>
+                        <span>Scale</span>
+                        <span>Price</span>
+                    </div>
+                    <div class="receipt-divider"></div>
+        `;
+        
+        // Add each dish to the receipt
+        this.currentOrder.dishes.forEach(dish => {
+            const formattedKey = this.formatKeyName(dish.key);
+            const scaleType = this.formatScaleTypeName(dish.scaleType);
+            const direction = dish.direction.charAt(0).toUpperCase() + dish.direction.slice(1);
+            
+            receiptContent += `
+                <div class="receipt-item">
+                    <span>${dish.name}</span>
+                    <span>${formattedKey} ${scaleType}</span>
+                    <span>$${dish.price.toFixed(2)}</span>
                 </div>
             `;
-        } else {
-            const messages = [
-                `Delicious! ${customerName} loved it!`,
-                `Great job! That was exactly what ${customerName} ordered!`,
-                `Amazing! ${customerName} left a great review!`,
-                `Wonderful! ${customerName} said it was the best they've ever had!`,
-                `Excellent! ${customerName} was so happy!`
-            ];
-            completionMessage.innerHTML = `<p>${messages[Math.floor(Math.random() * messages.length)]}</p>`;
-        }
+        });
         
-        this.orderCompleteModal.classList.remove('hidden');
+        // Add multipliers, subtotal, and total
+        const complexityMultiplier = this.complexityLevels[this.currentOrder.complexity].coinMultiplier;
+        const servingStyleMultiplier = this.servingStyles[this.currentOrder.servingStyle].multiplier;
+        const basePrice = this.currentOrder.basePrice;
+        
+        receiptContent += `
+                <div class="receipt-divider"></div>
+                <div class="receipt-subtotal">
+                    <span>Subtotal:</span>
+                    <span>$${basePrice.toFixed(2)}</span>
+                </div>
+                <div class="receipt-multipliers">
+                    <div class="receipt-multiplier">
+                        <span>${this.formatComplexityName(this.currentOrder.complexity)}:</span>
+                        <span>${complexityMultiplier.toFixed(1)}×</span>
+                    </div>
+                    <div class="receipt-multiplier">
+                        <span>${this.formatServingStyleName(this.currentOrder.servingStyle)}:</span>
+                        <span>${servingStyleMultiplier.toFixed(1)}×</span>
+                    </div>
+                </div>
+                <div class="receipt-divider"></div>
+                <div class="receipt-tip">
+                    <span>Tip:</span>
+                    <span>$${baseTipAmount.toFixed(2)}${isPerfect ? ` + <span class="burning-text">${extraTip.toFixed(1)}</span>` : ''}</span>
+                </div>
+                <div class="receipt-total">
+                    <span>Total:</span>
+                    <span>$${(parseFloat(sellAmount) + parseFloat(baseTipAmount) + (isPerfect ? parseFloat(extraTip) : 0)).toFixed(2)}</span>
+                </div>
+                <div class="receipt-divider"></div>
+                
+                <div class="receipt-rewards">
+                    <div class="receipt-reward">
+                        <span>⭐ XP Earned:</span>
+                        <span>${xpReward}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Perfect stamp is now added to the thank you message area
+
+        
+        // Add thank you message
+        const messages = [
+            `Delicious! ${customerName} loved it!`,
+            `Great job! That was exactly what ${customerName} ordered!`,
+            `Amazing! ${customerName} left a great review!`,
+            `Wonderful! ${customerName} said it was the best they've ever had!`,
+            `Excellent! ${customerName} was so happy!`
+        ];
+        
+        receiptContent += `
+            <div class="receipt-footer">
+                <p>${isPerfect ? `Flawless execution! ${customerName} was amazed!` : messages[Math.floor(Math.random() * messages.length)]}</p>
+                <div class="thank-you-container">
+                    <p class="thank-you-text">Thank You!</p>
+                    ${isPerfect ? '<div class="perfect-stamp thank-you-perfect">Perfect!</div>' : ''}
+                </div>
+            </div>
+        </div>
+        `;
+        
+        completionMessage.innerHTML = receiptContent;
     }
     
     /**
@@ -1330,7 +1434,35 @@ class CafeSystem {
     formatKeyName(key) {
         return key.replace('b', '♭').replace('#', '♯');
     }
-    
+
+    /**
+     * Format complexity name for display
+     * @param {string} complexity - The complexity type (normal, elite, boss)
+     * @returns {string} Formatted complexity name
+     */
+    formatComplexityName(complexity) {
+        const complexityNames = {
+            'normal': 'Simple',
+            'elite': 'Complex',
+            'boss': 'Gourmet'
+        };
+        return complexityNames[complexity] || complexity;
+    }
+
+    /**
+     * Format serving style name for display
+     * @param {string} servingStyle - The serving style (quarter, 8th, triplet)
+     * @returns {string} Formatted serving style name
+     */
+    formatServingStyleName(servingStyle) {
+        const servingStyleNames = {
+            'quarter': 'Quarter',
+            '8th': '8th',
+            'triplet': 'Triplet'
+        };
+        return servingStyleNames[servingStyle] || servingStyle;
+    }
+
     /**
      * Update player stats display
      */

@@ -1027,7 +1027,7 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .modal.hidden {
-display: none;
+    display: none;
 }
 
 .modal-content {
@@ -1036,7 +1036,7 @@ display: none;
     border-radius: 20px;
     text-align: center;
     max-width: 95%;
-    width: 600px;
+    width: 400px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     position: relative;
     border: 3px solid #D2691E;
@@ -1045,37 +1045,212 @@ display: none;
 .modal-content h2 {
     font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     color: #8B4513;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     font-size: 1.8rem;
     position: relative;
     z-index: 5;
 }
 
 .completion-message {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     color: #5D4037;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 500;
+}
+
+/* Receipt Styling */
+.receipt {
+    background: #FFF8E1;
+    border: 1px dashed #D2B48C;
+    border-radius: 5px;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    text-align: left;
+    position: relative;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.receipt-header {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px dashed #D2B48C;
+    padding-bottom: 0.5rem;
+}
+
+.receipt-header h3 {
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
+    color: #8B4513;
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.receipt-header p {
+    font-size: 0.8rem;
+    color: #8B4513;
+    margin: 0.2rem 0;
+}
+
+.receipt-datetime {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #8B4513;
+    margin-top: 0.5rem;
+}
+
+.receipt-customer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+}
+
+.receipt-divider {
+    border-top: 1px dashed #D2B48C;
+    margin: 0.5rem 0;
+}
+
+.receipt-column-headers {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-bottom: 0.3rem;
+}
+
+.receipt-item {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+}
+
+.receipt-item-detail {
+    font-size: 0.7rem;
+    color: #666;
+    margin-left: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.receipt-subtotal, .receipt-total, .receipt-tip {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin: 0.3rem 0;
+}
+
+.receipt-total {
+    font-weight: bold;
+}
+
+.receipt-total span:last-child {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.total-perfect {
+    position: absolute;
+    top: 50%;
+    right: 30%;
+    transform: translateY(-50%) rotate(15deg);
+    padding: 0.2rem 0.4rem;
+    font-size: 0.7rem;
+    margin-left: 0.5rem;
+    display: inline-block;
+    z-index: 10;
+}
+
+.receipt-multipliers {
+    font-size: 0.75rem;
+    color: #666;
+    margin: 0.3rem 0;
+}
+
+.receipt-multiplier {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.2rem 0;
+}
+
+.receipt-rewards {
+    margin: 0.5rem 0;
+}
+
+.receipt-reward {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    margin: 0.3rem 0;
+    font-weight: bold;
+}
+
+.receipt-footer {
+    text-align: center;
+    font-size: 0.8rem;
+    margin-top: 1rem;
+    color: #8B4513;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.receipt-footer > p {
+    width: 100%;
+    margin: 0.2rem 0;
+}
+
+.thank-you-container {
+    position: relative;
+    margin-top: 0.5rem;
+    text-align: center;
+    width: 100%;
+    padding-right: 0;
+}
+
+.thank-you-text {
+    text-align: center;
+    font-weight: bold;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.thank-you-perfect {
+    position: absolute;
+    top: 50%;
+    right: -30px;
+    transform: translateY(-50%) rotate(15deg);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    margin: 0;
+    z-index: 10;
+}
+
+.receipt-footer p {
+    margin: 0.2rem 0;
 }
 
 .perfect-completion {
     display: flex;
     flex-direction: column;
     align-items: center;
-    position: relative;
-    margin-top: 20px;
-    padding-top: 30px;
+    position: absolute;
+    top: -15px;
+    right: 10px;
+    z-index: 10;
 }
 
 .perfect-stamp {
     background: radial-gradient(circle, #FFD700 0%, #FF6B35 60%, #F7931E 100%);
     color: white;
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 50%;
-    font-size: 1.2rem;
+    font-size: 1rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 2px;
+    letter-spacing: 1px;
     font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 255, 255, 0.7);
     border: none;
