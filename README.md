@@ -81,6 +81,29 @@ When transitioning from a C major scale ending on C to a G major scale:
 
 ## Update Log
 
+### May 28, 2025
+
+#### Economy System Refinement
+- **Revised Menu Prices**: Updated all dish prices across all scale types for better game balance
+  - Major Scales (Coffee): Adjusted to range from $3.00-$4.50 with an average of ~$3.73
+  - Harmonic Minor Scales (Bakery): Increased to $2.50-$4.00 with an average of ~$3.23
+  - Melodic Minor Scales (Snacks): Adjusted to $1.75-$3.25 with an average of ~$2.35
+- **Improved Reward Calculation**: Implemented a more sophisticated reward system
+  - Base Reward = Base Price × Complexity Multiplier × Serving Style Multiplier
+  - Complexity Multipliers: Simple (1.0×), Complex (2.5×), Gourmet (4.0×)
+  - Serving Style Multipliers: Quarter (1.0×), 8th (1.2×), Triplet (1.5×)
+- **Refined Tip System**: Updated tip calculation with perfect order bonus reduced to 20% (from 30%)
+- **Price Display**: Added consistent rounding to two decimal places for all monetary values
+- **Multiplier Transparency**: Added multiplier information to UI descriptions
+
+#### Serving Style Feature
+- **Dynamic Note Slots**: Implemented different note counts based on serving style
+  - Quarter: 4 notes per scale
+  - 8th: 8 notes per scale
+  - Triplet: 12 notes per scale
+- **UI Improvements**: Positioned serving style icons between customer name and direction badge
+- **Auto-Selection**: Added automatic selection of the first order after applying menu settings
+
 ### May 27, 2025
 
 #### UI Improvements

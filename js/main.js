@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         cafeSystem.setAvailableScales(['major', 'harmonicMinor']); // Coffee and Bakery
         cafeSystem.currentComplexity = 'elite'; // Set default complexity to Complex
+        cafeSystem.currentServingStyle = 'quarter'; // Set default serving style to Quarter
         cafeSystem.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
         cafeSystem.generateInitialOrders(); // Use the special initial method
     }, 100); // Reduced delay to make animation start sooner
@@ -95,15 +96,35 @@ function initMenuSettings(cafeSystem) {
     const closeMenuBtn = document.getElementById('close-menu-btn');
     const complexityDescription = document.getElementById('complexity-description');
     
-    // Track selected dishes and complexity
+    // Track selected dishes, complexity, and serving style
     const selectedDishes = new Set(['major', 'harmonicMinor']); // Start with Coffee and Bakery selected
     let selectedComplexity = 'elite'; // Default complexity is Complex
+    let selectedServingStyle = 'quarter'; // Default serving style is Quarter
     
-    // Define complexity descriptions
+    // Define complexity descriptions with multipliers
     const complexityDescriptions = {
-        normal: 'Simple: Single dish (8 notes)',
-        elite: 'Complex: Two dishes with voice leading (16 notes)',
-        boss: 'Gourmet: Three dishes with voice leading (24 notes)'
+        normal: {
+            quarter: 'Simple: Single dish (4 notes) - 1.0× multiplier',
+            '8th': 'Simple: Single dish (8 notes) - 1.0× multiplier',
+            triplet: 'Simple: Single dish (12 notes) - 1.0× multiplier'
+        },
+        elite: {
+            quarter: 'Complex: Two dishes with voice leading (8 notes) - 2.5× multiplier',
+            '8th': 'Complex: Two dishes with voice leading (16 notes) - 2.5× multiplier',
+            triplet: 'Complex: Two dishes with voice leading (24 notes) - 2.5× multiplier'
+        },
+        boss: {
+            quarter: 'Gourmet: Three dishes with voice leading (12 notes) - 4.0× multiplier',
+            '8th': 'Gourmet: Three dishes with voice leading (24 notes) - 4.0× multiplier',
+            triplet: 'Gourmet: Three dishes with voice leading (36 notes) - 4.0× multiplier'
+        }
+    };
+    
+    // Define serving style descriptions with multipliers
+    const servingStyleDescriptions = {
+        quarter: 'Quarter: Four notes per scale - 1.0× multiplier',
+        '8th': '8th: Eight notes per scale - 1.2× multiplier',
+        triplet: 'Triplet: Twelve notes per scale - 1.5× multiplier'
     };
     
     // Set initial UI state for default selections
@@ -123,9 +144,18 @@ function initMenuSettings(cafeSystem) {
     
 
     
+    // Get serving style buttons and description element
+    const servingStyleButtons = document.querySelectorAll('.serving-style-btn');
+    const servingStyleDescription = document.getElementById('serving-style-description');
+    
     // Set initial complexity description
     if (complexityDescription) {
-        complexityDescription.textContent = complexityDescriptions[selectedComplexity];
+        complexityDescription.textContent = complexityDescriptions[selectedComplexity][selectedServingStyle];
+    }
+    
+    // Set initial serving style description
+    if (servingStyleDescription) {
+        servingStyleDescription.textContent = servingStyleDescriptions[selectedServingStyle];
     }
     
     // Handle dish option selection
@@ -156,7 +186,31 @@ function initMenuSettings(cafeSystem) {
             
             // Update description
             if (complexityDescription) {
-                complexityDescription.textContent = complexityDescriptions[selectedComplexity];
+                complexityDescription.textContent = complexityDescriptions[selectedComplexity][selectedServingStyle];
+            }
+        });
+    });
+    
+    // Handle serving style selection
+    servingStyleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove selected class from all buttons
+            servingStyleButtons.forEach(btn => btn.classList.remove('selected'));
+            
+            // Add selected class to clicked button
+            button.classList.add('selected');
+            
+            // Update selected serving style
+            selectedServingStyle = button.dataset.servingStyle;
+            
+            // Update serving style description
+            if (servingStyleDescription) {
+                servingStyleDescription.textContent = servingStyleDescriptions[selectedServingStyle];
+            }
+            
+            // Update complexity description to reflect new serving style
+            if (complexityDescription) {
+                complexityDescription.textContent = complexityDescriptions[selectedComplexity][selectedServingStyle];
             }
         });
     });
@@ -177,9 +231,10 @@ function initMenuSettings(cafeSystem) {
             return;
         }
         
-        // Configure cafe system with selected dishes and complexity
+        // Configure cafe system with selected dishes, complexity, and serving style
         cafeSystem.setAvailableScales(Array.from(selectedDishes));
         cafeSystem.currentComplexity = selectedComplexity; // Set the complexity
+        cafeSystem.currentServingStyle = selectedServingStyle; // Set the serving style
         // Use all 12 keys
         cafeSystem.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
         
@@ -187,12 +242,22 @@ function initMenuSettings(cafeSystem) {
         console.log(`=== MENU SETTINGS APPLIED ===`);
         console.log(`Dishes: ${Array.from(selectedDishes).join(', ')}`);
         console.log(`Complexity: ${selectedComplexity}`);
+        console.log(`Serving Style: ${selectedServingStyle}`);
         
         // Generate new orders with updated settings
         cafeSystem.generateNewOrders();
         
         // Close menu panel
         menuPanel.classList.remove('visible');
+        
+        // Automatically select the first order after a short delay
+        // This gives time for the orders to be rendered
+        setTimeout(() => {
+            if (cafeSystem.availableOrders.length > 0) {
+                cafeSystem.selectOrder(cafeSystem.availableOrders[0]);
+                cafeSystem.startCooking();
+            }
+        }, 300);
     });
     
     // Close menu button

@@ -24,11 +24,19 @@ class CafeSystem {
         
         // Order complexity settings (same as battle difficulty)
         this.complexityLevels = {
-            normal: { dishes: 1, notesPerDish: 8, xpMultiplier: 1, coinMultiplier: 1 },
-            elite: { dishes: 2, notesPerDish: 8, xpMultiplier: 2, coinMultiplier: 1.5 },
-            boss: { dishes: 3, notesPerDish: 8, xpMultiplier: 3, coinMultiplier: 2 }
+            normal: { dishes: 1, notesPerDish: 8, xpMultiplier: 1, coinMultiplier: 1.0 },
+            elite: { dishes: 2, notesPerDish: 8, xpMultiplier: 2, coinMultiplier: 2.5 },
+            boss: { dishes: 3, notesPerDish: 8, xpMultiplier: 3, coinMultiplier: 4.0 }
         };
         this.currentComplexity = 'normal';
+        
+        // Serving style settings (quarter, 8th, triplet)
+        this.servingStyles = {
+            quarter: { notesPerScale: 4, multiplier: 1.0 },
+            '8th': { notesPerScale: 8, multiplier: 1.2 },
+            triplet: { notesPerScale: 12, multiplier: 1.5 }
+        };
+        this.currentServingStyle = 'quarter';
         
         // Current order data
         this.currentOrder = {
@@ -68,25 +76,25 @@ class CafeSystem {
         // Dish prices from the Scale-Enharmonic.md file
         this.dishPrices = {
             major: {
-                'C': 4.50, 'Db': 2.50, 'D': 4.00, 'Eb': 4.75,
-                'E': 2.50, 'F': 3.00, 'F#': 3.50, 'G': 4.00,
-                'Ab': 3.50, 'A': 3.50, 'Bb': 4.50, 'B': 4.00,
+                'C': 4.25, 'Db': 3.00, 'D': 4.00, 'Eb': 4.50,
+                'E': 3.00, 'F': 3.25, 'F#': 3.50, 'G': 4.00,
+                'Ab': 3.50, 'A': 3.50, 'Bb': 4.25, 'B': 4.00,
                 // Enharmonic equivalents for compatibility
-                'C#': 2.50, 'D#': 4.75, 'Gb': 3.50, 'G#': 3.50, 'A#': 4.50
+                'C#': 3.00, 'D#': 4.50, 'Gb': 3.50, 'G#': 3.50, 'A#': 4.25
             },
             harmonicMinor: {
-                'C': 2.50, 'Db': 2.00, 'D': 2.50, 'Eb': 2.75,
-                'E': 3.00, 'F': 1.50, 'F#': 3.00, 'G': 2.50,
-                'Ab': 3.00, 'A': 1.50, 'Bb': 1.00, 'B': 2.50,
+                'C': 3.50, 'Db': 2.75, 'D': 3.25, 'Eb': 3.50,
+                'E': 4.00, 'F': 2.50, 'F#': 3.75, 'G': 3.25,
+                'Ab': 3.75, 'A': 2.50, 'Bb': 2.50, 'B': 3.25,
                 // Enharmonic equivalents for compatibility
-                'C#': 2.00, 'D#': 2.75, 'Gb': 3.00, 'G#': 3.00, 'A#': 1.00
+                'C#': 2.75, 'D#': 3.50, 'Gb': 3.75, 'G#': 3.75, 'A#': 2.50
             },
             melodicMinor: {
-                'C': 1.50, 'Db': 1.50, 'D': 1.50, 'Eb': 1.50,
-                'E': 2.00, 'F': 2.00, 'F#': 2.50, 'G': 1.00,
-                'Ab': 2.75, 'A': 2.00, 'Bb': 1.50, 'B': 2.00,
+                'C': 2.00, 'Db': 1.75, 'D': 2.00, 'Eb': 2.00,
+                'E': 2.50, 'F': 2.50, 'F#': 3.00, 'G': 1.75,
+                'Ab': 3.25, 'A': 2.50, 'Bb': 2.00, 'B': 2.50,
                 // Enharmonic equivalents for compatibility
-                'C#': 1.50, 'D#': 1.50, 'Gb': 2.50, 'G#': 2.75, 'A#': 1.50
+                'C#': 1.75, 'D#': 2.00, 'Gb': 3.00, 'G#': 3.25, 'A#': 2.00
             }
         };
         
@@ -195,6 +203,10 @@ class CafeSystem {
         const complexity = this.currentComplexity || 'elite';
         const complexitySettings = this.complexityLevels[complexity];
         
+        // Use current serving style setting from menu
+        const servingStyle = this.currentServingStyle || 'quarter';
+        const servingStyleSettings = this.servingStyles[servingStyle];
+        
         const customerNames = [
             'Alex', 'Sam', 'Jordan', 'Casey', 'Riley', 'Morgan', 'Avery', 'Quinn',
             'Taylor', 'Jamie', 'Sage', 'River', 'Skylar', 'Rowan', 'Phoenix'
@@ -212,6 +224,7 @@ class CafeSystem {
             id: Date.now() + Math.random(),
             customerName: `${randomHonorific} ${randomName}`,
             complexity: complexity,
+            servingStyle: servingStyle,  // Add serving style to the order
             dishes: [],
             totalSell: 0 // Will be calculated after dishes are added
         };
@@ -258,8 +271,8 @@ class CafeSystem {
                 startNote = this.findVoiceLeadingNote(previousEndNote, correctScale, orderDirection);
             }
             
-            // Generate the 8-note sequence starting from the chosen note
-            const sequence = this.generateSequenceFromStartNote(correctScale, startNote, orderDirection);
+            // Generate the sequence starting from the chosen note based on serving style
+            const sequence = this.generateSequenceFromStartNote(correctScale, startNote, orderDirection, order.servingStyle);
             
             const dishPrice = this.getDishPrice(randomScaleType, randomKey);
             const dish = {
@@ -273,13 +286,34 @@ class CafeSystem {
             };
             
             order.dishes.push(dish);
-            order.totalSell += dishPrice;
             
             // Set previous end note for voice leading
             if (sequence && sequence.length > 0) {
                 previousEndNote = sequence[sequence.length - 1];
             }
         }
+        
+        // Calculate base price based on the new economy system
+        let basePrice = 0;
+        if (order.dishes.length === 1) {
+            // Simple: Use the dish's price
+            basePrice = order.dishes[0].price;
+        } else {
+            // Complex/Gourmet: Average the prices of the selected dishes
+            const totalDishPrice = order.dishes.reduce((sum, dish) => sum + dish.price, 0);
+            basePrice = totalDishPrice / order.dishes.length;
+        }
+        
+        // Apply multipliers
+        const complexityMultiplier = this.complexityLevels[order.complexity].coinMultiplier;
+        const servingStyleMultiplier = this.servingStyles[order.servingStyle].multiplier;
+        
+        // Calculate the base reward
+        const baseReward = basePrice * complexityMultiplier * servingStyleMultiplier;
+        
+        // Set the total sell amount (rounded to 2 decimal places)
+        order.basePrice = parseFloat(basePrice.toFixed(2));
+        order.totalSell = parseFloat(baseReward.toFixed(2));
         
         return order;
     }
@@ -445,13 +479,14 @@ class CafeSystem {
     }
     
     /**
-     * Generate an 8-note sequence from a starting note in a scale
+     * Generate a sequence from a starting note in a scale based on serving style
      * @param {Array} scale - The complete scale (8 notes including octave)
      * @param {string} startNote - The note to start from
      * @param {string} direction - 'ascending' or 'descending'
-     * @returns {Array} 8-note sequence
+     * @param {string} servingStyle - The serving style (quarter, 8th, triplet)
+     * @returns {Array} sequence of notes based on serving style
      */
-    generateSequenceFromStartNote(scale, startNote, direction) {
+    generateSequenceFromStartNote(scale, startNote, direction, servingStyle) {
         // Find the starting note in the scale
         let startIndex = -1;
         for (let i = 0; i < scale.length; i++) {
@@ -469,15 +504,23 @@ class CafeSystem {
         const sequence = [];
         const scaleWithoutOctave = scale.slice(0, -1); // Remove the octave duplicate [C,D,E,F,G,A,B]
         
+        // Determine number of notes based on serving style
+        let notesCount = 8; // Default for 8th notes
+        if (servingStyle === 'quarter') {
+            notesCount = 4;
+        } else if (servingStyle === 'triplet') {
+            notesCount = 12;
+        }
+        
         if (direction === 'ascending') {
-            // For ascending: start from the note and go up 8 notes
-            for (let i = 0; i < 8; i++) {
+            // For ascending: start from the note and go up based on serving style
+            for (let i = 0; i < notesCount; i++) {
                 const index = (startIndex + i) % scaleWithoutOctave.length;
                 sequence.push(scaleWithoutOctave[index]);
             }
         } else {
-            // For descending: start from the note and go down 8 notes
-            for (let i = 0; i < 8; i++) {
+            // For descending: start from the note and go down based on serving style
+            for (let i = 0; i < notesCount; i++) {
                 const index = (startIndex - i + scaleWithoutOctave.length * 10) % scaleWithoutOctave.length;
                 sequence.push(scaleWithoutOctave[index]);
             }
@@ -732,11 +775,18 @@ class CafeSystem {
         
         const direction = order.dishes[0]?.direction || 'ascending';
         const directionIcon = direction === 'ascending' ? '🪽' : '🍂';
+        const servingStyle = order.servingStyle || 'quarter';
         
         ticket.innerHTML = `
             <div class="ticket-header">
-                <h3>${order.customerName}</h3>
-                <span class="direction-badge ${direction}">${directionIcon} ${direction}</span>
+                <h3>${order.customerName} 
+                    <span class="serving-style-badge">
+                        <img src="asset/${servingStyle}.png" alt="${servingStyle}" class="serving-style-icon-small">
+                    </span>
+                </h3>
+                <div class="ticket-badges">
+                    <span class="direction-badge ${direction}">${directionIcon} ${direction}</span>
+                </div>
             </div>
             <div class="ticket-body">
                 <ul class="dish-list">
@@ -783,15 +833,14 @@ class CafeSystem {
         this.isCooking = true;
         this.mistakeCount = 0; // Reset mistake count for new order
         this.currentComplexity = this.currentOrder.complexity;
-        
-        // Clear all note slots
-        this.noteSlots.forEach(slot => {
-            slot.textContent = '';
-            slot.className = 'note-slot';
-        });
+        this.currentServingStyle = this.currentOrder.servingStyle || 'quarter';
         
         // Set complexity attribute for display
         document.body.setAttribute('data-difficulty', this.currentComplexity);
+        document.body.setAttribute('data-serving-style', this.currentServingStyle);
+        
+        // Generate note slots based on serving style
+        this.generateNoteSlots();
         
         // Simply combine all dish sequences (they were already generated correctly with voice leading)
         this.currentSequence = [];
@@ -800,7 +849,7 @@ class CafeSystem {
                 this.currentSequence = this.currentSequence.concat(dish.sequence);
             }
         }
-        
+        // Update the cooking UI and progress bar
         this.updateCookingUI();
         this.updateProgressBar();
         
@@ -816,6 +865,57 @@ class CafeSystem {
         });
         
         console.log(`Expected sequence: [${this.currentSequence.join(', ')}]`);
+    }
+    
+    /**
+     * Generate note slots based on serving style
+     */
+    generateNoteSlots() {
+        // Get the note sequence container
+        const noteSequence = document.getElementById('note-sequence');
+        if (!noteSequence) return;
+        
+        // Clear existing note slots
+        noteSequence.innerHTML = '';
+        
+        // Determine number of notes per row based on serving style
+        let notesPerRow = 8; // Default for 8th notes
+        if (this.currentServingStyle === 'quarter') {
+            notesPerRow = 4;
+        } else if (this.currentServingStyle === 'triplet') {
+            notesPerRow = 12;
+        }
+        
+        // Determine number of rows based on complexity
+        let numRows = 1; // Default for normal complexity
+        if (this.currentComplexity === 'elite') {
+            numRows = 2;
+        } else if (this.currentComplexity === 'boss') {
+            numRows = 3;
+        }
+        
+        // Generate rows with note slots
+        for (let row = 0; row < numRows; row++) {
+            const rowClass = row === 0 ? 'note-row' : 
+                           (row === 1 ? 'note-row complex-row' : 'note-row gourmet-row');
+            
+            const rowElement = document.createElement('div');
+            rowElement.className = rowClass;
+            
+            // Generate note slots for this row
+            for (let i = 0; i < notesPerRow; i++) {
+                const slotIndex = row * notesPerRow + i;
+                const slotElement = document.createElement('div');
+                slotElement.className = 'note-slot';
+                slotElement.dataset.index = slotIndex;
+                rowElement.appendChild(slotElement);
+            }
+            
+            noteSequence.appendChild(rowElement);
+        }
+        
+        // Update the note slots reference
+        this.noteSlots = document.querySelectorAll('.note-slot');
     }
     
     /**
@@ -958,19 +1058,20 @@ class CafeSystem {
         // Check if order was completed perfectly (no mistakes)
         const isPerfect = this.mistakeCount === 0;
         
-        // Calculate tip as 15-25% of sell amount
+        // Calculate tip as 15-25% of sell amount (base tip)
         const tipPercentage = 0.15 + Math.random() * 0.10; // Random between 15% and 25%
         let tipAmount = sellAmount * tipPercentage;
         let extraTip = 0;
         
-        // Add perfect bonus (30% extra tip)
+        // Add perfect bonus (20% extra tip instead of 30%)
         if (isPerfect) {
-            extraTip = sellAmount * 0.30;
+            extraTip = sellAmount * 0.20;
             tipAmount += extraTip;
         }
         
-        // Total coins earned = sell amount + tip
-        const totalCoinsEarned = sellAmount + tipAmount;
+        // Total coins earned = sell amount + tip (rounded to 2 decimal places)
+        tipAmount = parseFloat(tipAmount.toFixed(2));
+        const totalCoinsEarned = parseFloat((sellAmount + tipAmount).toFixed(2));
         
         // Play earn money sound
         this.soundManager.play('earnMoney');
@@ -1079,10 +1180,19 @@ class CafeSystem {
         
         const direction = this.currentOrder.dishes[0]?.direction || 'ascending';
         const directionIcon = direction === 'ascending' ? '🪽' : '🍂';
+        const servingStyle = this.currentOrder.servingStyle || 'quarter';
         
         this.currentOrderElement.innerHTML = `
             <div class="cooking-order">
-                <h3>Cooking for ${this.currentOrder.customerName} <span class="direction-badge ${direction}">${directionIcon} ${direction}</span></h3>
+                <h3>
+                    Cooking for ${this.currentOrder.customerName} 
+                    <span class="serving-style-badge">
+                        <img src="asset/${servingStyle}.png" alt="${servingStyle}" class="serving-style-icon-small">
+                    </span>
+                    <div class="cooking-badges">
+                        <span class="direction-badge ${direction}">${directionIcon} ${direction}</span>
+                    </div>
+                </h3>
                 <p class="dishes">Preparing: ${dishList}</p>
             </div>
         `;
