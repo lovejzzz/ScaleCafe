@@ -72,14 +72,14 @@ Multiple Dishes (Complex, Gourmet): Use the average price of the selected dishes
 These reflect the number of dishes and the challenge of voice leading:
 
 Simple: 1 dish, 4/8/12 notes (Quarter/8th/Triplet), 1.0× multiplier.
-Complex: 2 dishes with voice leading, 8/16/24 notes, 2.5× multiplier (increased effort for harmonizing two scales).
-Gourmet: 3 dishes with voice leading, 12/24/36 notes, 4.0× multiplier (highest complexity for three scales).
+Complex: 2 dishes with voice leading, 8/16/24 notes, 2× multiplier (increased effort for harmonizing two scales).
+Gourmet: 3 dishes with voice leading, 12/24/36 notes, 3.0× multiplier (highest complexity for three scales).
 3. Serving Style Multipliers
 These account for rhythmic complexity:
 
 Quarter: 4 notes per scale, simplest rhythm, 1.0× multiplier.
-8th: 8 notes per scale, moderate complexity, 1.2× multiplier.
-Triplet: 12 notes per scale, most complex rhythm, 1.5× multiplier.
+8th: 8 notes per scale, moderate complexity, 1.5× multiplier.
+Triplet: 12 notes per scale, most complex rhythm, 2.0× multiplier.
 4. Tip System (Refined)
 The existing tip system (random 15%–25% plus a 30% bonus for perfect orders) is solid but can be tweaked for balance and clarity:
 

@@ -463,6 +463,15 @@ body.cafe-opened .cooking-station {
     max-width: 350px;
 }
 
+/* Add subtle background colors based on direction */
+.order-ticket.has-ascending {
+    background: rgba(70, 130, 180, 0.08); /* Very light Steel Blue */
+}
+
+.order-ticket.has-descending {
+    background: rgba(74, 112, 67, 0.08); /* Very light Olive sage */
+}
+
 .order-ticket:not(.initial-load):not(.initial-slide-in) {
     transform: rotate(-1deg);
 }
@@ -472,19 +481,30 @@ body.cafe-opened .cooking-station {
     opacity: 0 !important;
 }
 
-.order-ticket::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: #DEB887;
+/* Add top border line to order-ticket with simple border-top approach */
+.order-ticket {
+    border-top: 4px solid #DEB887; /* Default border color */
 }
 
-.order-ticket.normal::before { background: #90EE90; }
-.order-ticket.elite::before { background: #FFD700; }
-.order-ticket.boss::before { background: #FF6347; }
+/* Direction-based top border colors */
+.order-ticket.has-ascending {
+    border-top-color: #4682B4; /* Steel Blue to match direction badge */
+}
+
+.order-ticket.has-descending {
+    border-top-color: #4A7043; /* Olive sage to match direction badge */
+}
+
+/* Complexity colors now applied as secondary priority after direction */
+.order-ticket.simple:not(.has-ascending):not(.has-descending) {
+    border-top-color: #90EE90;
+}
+.order-ticket.complex:not(.has-ascending):not(.has-descending) {
+    border-top-color: #FFD700;
+}
+.order-ticket.gourmet:not(.has-ascending):not(.has-descending) {
+    border-top-color: #FF6347;
+}
 
 .order-ticket:hover {
     transform: rotate(0deg) translateY(-5px);
@@ -661,6 +681,30 @@ vertical-align: middle;
     width: 100%;
     max-width: 100%;
     flex-wrap: wrap;
+    position: relative; /* Needed for absolute positioning of the ::before element */
+}
+
+/* Add top border line to current-order with simple border-top approach */
+.current-order {
+    border-top: 4px solid #DEB887; /* Default border color */
+}
+
+/* Direction-based top border colors for current-order */
+.current-order.has-ascending {
+    border-top-color: #4682B4; /* Steel Blue to match direction badge */
+}
+
+.current-order.has-descending {
+    border-top-color: #4A7043; /* Olive sage to match direction badge */
+}
+
+/* Add subtle background colors based on direction */
+.current-order.has-ascending {
+    background: rgba(70, 130, 180, 0.08); /* Very light Steel Blue */
+}
+
+.current-order.has-descending {
+    background: rgba(74, 112, 67, 0.08); /* Very light Olive sage */
 }
 
 .cooking-order h3 {
@@ -750,9 +794,9 @@ vertical-align: middle;
     display: none;
 }
 
-body[data-difficulty="elite"] .complex-row,
-body[data-difficulty="boss"] .complex-row,
-body[data-difficulty="boss"] .gourmet-row {
+body[data-difficulty="complex"] .complex-row,
+body[data-difficulty="gourmet"] .complex-row,
+body[data-difficulty="gourmet"] .gourmet-row {
     display: flex;
 }
 
@@ -862,7 +906,8 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .menu-section {
-    margin-bottom: 2rem;
+    margin-bottom: 20px;
+    position: relative;
 }
 
 .menu-section h3 {
@@ -916,8 +961,13 @@ body[data-difficulty="boss"] .gourmet-row {
 
 .complexity-buttons {
     display: flex;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.complexity-buttons:hover + .complexity-info {
+    display: block;
 }
 
 .complexity-btn, .serving-style-btn {
@@ -952,8 +1002,13 @@ body[data-difficulty="boss"] .gourmet-row {
 
 .serving-style-buttons {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 10px;
+    margin-bottom: 10px;
+    position: relative;
+}
+
+.serving-style-buttons:hover + .serving-style-info {
+    display: block;
 }
 
 .serving-style-icon {
@@ -965,13 +1020,21 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .complexity-info, .serving-style-info {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 5px;
+    z-index: 1000;
     background: #F0F8FF;
     border: 2px solid #87CEEB;
     border-radius: 10px;
     padding: 0.75rem;
-    text-align: center;
-    color: #4682B4;
-    font-weight: 500;
+    font-size: 0.9rem;
+    color: #333;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    min-width: 300px;
+    pointer-events: none;
 }
 
 .menu-controls {

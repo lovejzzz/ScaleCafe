@@ -24,24 +24,24 @@ class CafeSystem {
         
         // Order complexity settings (same as battle difficulty)
         this.complexityLevels = {
-            normal: { dishes: 1, notesPerDish: 8, xpMultiplier: 1, coinMultiplier: 1.0 },
-            elite: { dishes: 2, notesPerDish: 8, xpMultiplier: 2, coinMultiplier: 2.5 },
-            boss: { dishes: 3, notesPerDish: 8, xpMultiplier: 3, coinMultiplier: 4.0 }
+            simple: { dishes: 1, notesPerDish: 8, xpMultiplier: 1, coinMultiplier: 1.0 },
+            complex: { dishes: 2, notesPerDish: 8, xpMultiplier: 2, coinMultiplier: 2.0 },
+            gourmet: { dishes: 3, notesPerDish: 8, xpMultiplier: 3, coinMultiplier: 3.0 }
         };
-        this.currentComplexity = 'normal';
+        this.currentComplexity = 'simple';
         
         // Serving style settings (quarter, 8th, triplet)
         this.servingStyles = {
             quarter: { notesPerScale: 4, multiplier: 1.0 },
-            '8th': { notesPerScale: 8, multiplier: 1.2 },
-            triplet: { notesPerScale: 12, multiplier: 1.5 }
+            '8th': { notesPerScale: 8, multiplier: 1.5 },
+            triplet: { notesPerScale: 12, multiplier: 2.0 }
         };
         this.currentServingStyle = 'quarter';
         
         // Current order data
         this.currentOrder = {
             customerName: '',
-            complexity: 'normal',
+            complexity: 'simple',
             dishes: []
         };
         
@@ -199,8 +199,8 @@ class CafeSystem {
      */
     generateRandomOrder() {
         // Use current complexity setting from menu
-        const complexities = ['normal', 'elite', 'boss'];
-        const complexity = this.currentComplexity || 'elite';
+        const complexities = ['simple', 'complex', 'gourmet'];
+        const complexity = this.currentComplexity || 'complex';
         const complexitySettings = this.complexityLevels[complexity];
         
         // Use current serving style setting from menu
@@ -760,13 +760,13 @@ class CafeSystem {
      */
     createOrderTicket(order) {
         const ticket = document.createElement('div');
-        ticket.className = `order-ticket ${order.complexity}`;
+        ticket.className = `order-ticket ${order.complexity} has-${order.direction}`;
         ticket.dataset.orderId = order.id;
         
         const complexityIcons = {
-            normal: '🍽️',
-            elite: '🍽️🍽️',
-            boss: '🍽️🍽️🍽️'
+            simple: '🍽️',
+            complex: '🍽️🍽️',
+            gourmet: '🍽️🍽️🍽️'
         };
         
         const dishList = order.dishes.map(dish => 
@@ -887,10 +887,10 @@ class CafeSystem {
         }
         
         // Determine number of rows based on complexity
-        let numRows = 1; // Default for normal complexity
-        if (this.currentComplexity === 'elite') {
+        let numRows = 1; // Default for simple complexity
+        if (this.currentComplexity === 'complex') {
             numRows = 2;
-        } else if (this.currentComplexity === 'boss') {
+        } else if (this.currentComplexity === 'gourmet') {
             numRows = 3;
         }
         
@@ -1286,6 +1286,9 @@ class CafeSystem {
         const directionIcon = direction === 'ascending' ? '🪽' : '🍂';
         const servingStyle = this.currentOrder.servingStyle || 'quarter';
         
+        // Add direction-based class to the current-order element
+        this.currentOrderElement.className = `current-order has-${direction}`;
+        
         this.currentOrderElement.innerHTML = `
             <div class="cooking-order">
                 <h3>
@@ -1437,14 +1440,14 @@ class CafeSystem {
 
     /**
      * Format complexity name for display
-     * @param {string} complexity - The complexity type (normal, elite, boss)
+     * @param {string} complexity - The complexity type (simple, complex, gourmet)
      * @returns {string} Formatted complexity name
      */
     formatComplexityName(complexity) {
         const complexityNames = {
-            'normal': 'Simple',
-            'elite': 'Complex',
-            'boss': 'Gourmet'
+            'simple': 'Simple',
+            'complex': 'Complex',
+            'gourmet': 'Gourmet'
         };
         return complexityNames[complexity] || complexity;
     }

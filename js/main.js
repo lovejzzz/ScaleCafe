@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto-apply default settings
     setTimeout(() => {
         cafeSystem.setAvailableScales(['major']); // Only Coffee Menu
-        cafeSystem.currentComplexity = 'normal'; // Set default complexity to Simple
+        cafeSystem.currentComplexity = 'simple'; // Set default complexity to Simple
         cafeSystem.currentServingStyle = 'quarter'; // Set default serving style to Quarter
         cafeSystem.setAvailableKeys(['C', 'Db', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B']);
         
@@ -102,33 +102,33 @@ function initMenuSettings(cafeSystem) {
     
     // Track selected dishes, complexity, and serving style
     const selectedDishes = new Set(['major']); // Start with only Coffee Menu selected
-    let selectedComplexity = 'normal'; // Default complexity is Simple
+    let selectedComplexity = 'simple'; // Default complexity is Simple
     let selectedServingStyle = 'quarter'; // Default serving style is Quarter
     
     // Define complexity descriptions with multipliers
     const complexityDescriptions = {
-        normal: {
+        simple: {
             quarter: 'Simple: Single dish (4 notes) - 1.0× multiplier',
             '8th': 'Simple: Single dish (8 notes) - 1.0× multiplier',
             triplet: 'Simple: Single dish (12 notes) - 1.0× multiplier'
         },
-        elite: {
-            quarter: 'Complex: Two dishes with voice leading (8 notes) - 2.5× multiplier',
-            '8th': 'Complex: Two dishes with voice leading (16 notes) - 2.5× multiplier',
-            triplet: 'Complex: Two dishes with voice leading (24 notes) - 2.5× multiplier'
+        complex: {
+            quarter: 'Complex: Two dishes with voice leading (8 notes) - 2.0× multiplier',
+            '8th': 'Complex: Two dishes with voice leading (16 notes) - 2.0× multiplier',
+            triplet: 'Complex: Two dishes with voice leading (24 notes) - 2.0× multiplier'
         },
-        boss: {
-            quarter: 'Gourmet: Three dishes with voice leading (12 notes) - 4.0× multiplier',
-            '8th': 'Gourmet: Three dishes with voice leading (24 notes) - 4.0× multiplier',
-            triplet: 'Gourmet: Three dishes with voice leading (36 notes) - 4.0× multiplier'
+        gourmet: {
+            quarter: 'Gourmet: Three dishes with voice leading (12 notes) - 3.0× multiplier',
+            '8th': 'Gourmet: Three dishes with voice leading (24 notes) - 3.0× multiplier',
+            triplet: 'Gourmet: Three dishes with voice leading (36 notes) - 3.0× multiplier'
         }
     };
     
     // Define serving style descriptions with multipliers
     const servingStyleDescriptions = {
         quarter: 'Quarter: Four notes per scale - 1.0× multiplier',
-        '8th': '8th: Eight notes per scale - 1.2× multiplier',
-        triplet: 'Triplet: Twelve notes per scale - 1.5× multiplier'
+        '8th': '8th: Eight notes per scale - 1.5× multiplier',
+        triplet: 'Triplet: Twelve notes per scale - 2.0× multiplier'
     };
     
     // Set initial UI state for default selections
@@ -219,6 +219,47 @@ function initMenuSettings(cafeSystem) {
         });
     });
     
+    // Add hover event listeners for dynamic tooltip updates
+    // Complexity buttons hover handlers
+    complexityButtons.forEach(button => {
+        button.addEventListener('mouseenter', () => {
+            const hoveredComplexity = button.dataset.difficulty;
+            if (complexityDescription) {
+                complexityDescription.textContent = complexityDescriptions[hoveredComplexity][selectedServingStyle];
+            }
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            // Restore the description for the currently selected complexity
+            if (complexityDescription) {
+                complexityDescription.textContent = complexityDescriptions[selectedComplexity][selectedServingStyle];
+            }
+        });
+    });
+    
+    // Serving style buttons hover handlers
+    servingStyleButtons.forEach(button => {
+        button.addEventListener('mouseenter', () => {
+            const hoveredServingStyle = button.dataset.servingStyle;
+            if (servingStyleDescription) {
+                servingStyleDescription.textContent = servingStyleDescriptions[hoveredServingStyle];
+            }
+            // Also update complexity description to show how it would look with this serving style
+            if (complexityDescription) {
+                complexityDescription.textContent = complexityDescriptions[selectedComplexity][hoveredServingStyle];
+            }
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            // Restore the descriptions for the currently selected options
+            if (servingStyleDescription) {
+                servingStyleDescription.textContent = servingStyleDescriptions[selectedServingStyle];
+            }
+            if (complexityDescription) {
+                complexityDescription.textContent = complexityDescriptions[selectedComplexity][selectedServingStyle];
+            }
+        });
+    });
 
     
     // Menu settings button
