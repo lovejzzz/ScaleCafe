@@ -15,21 +15,32 @@ Scale Cafe is an interactive web application designed to help musicians practice
 - **All 12 Musical Keys**: Support for all keys (C, C#/Db, D, etc.)
 - **MIDI Integration**: Connect your MIDI keyboard to play scales in real-time
 - **Voice Leading**: Advanced mode with voice leading between scales
+- **Serving Styles**: Choose between Quarter, 8th, and Triplet note patterns
+- **Balanced Economy System**: Sophisticated reward calculation with multipliers
 - **Progress Tracking**: Earn XP and tips as you complete orders
 - **Visual Feedback**: Immediate feedback on correct/incorrect notes
 
 ## How to Play
 
 1. **Connect Your MIDI Keyboard**: The app will automatically detect your MIDI device
-2. **Select an Order**: Choose from available orders on the Order Board
-3. **Play the Notes**: Follow the highlighted notes and play them in sequence
-4. **Complete the Order**: Successfully play all notes to complete the order and earn rewards
+2. **Configure Settings**: Adjust complexity level and serving style in the menu settings
+3. **Select an Order**: Choose from available orders on the Order Board (or let the app auto-select the first order)
+4. **Play the Notes**: Follow the highlighted notes and play them in sequence
+5. **Complete the Order**: Successfully play all notes to complete the order and earn rewards
 
 ### Complexity Levels
 
-- **Simple**: One scale (8 notes)
-- **Complex**: Two scales with voice leading (16 notes)
-- **Gourmet**: Three scales with voice leading (24 notes)
+- **Simple**: One scale (1.0× multiplier)
+- **Complex**: Two scales with voice leading (2.5× multiplier)
+- **Gourmet**: Three scales with voice leading (4.0× multiplier)
+
+### Serving Styles
+
+- **Quarter**: Four notes per scale (1.0× multiplier)
+- **8th**: Eight notes per scale (1.2× multiplier)
+- **Triplet**: Twelve notes per scale (1.5× multiplier)
+
+The number of notes per order depends on both the complexity level and serving style. For example, a Complex order with Triplet serving style will have 24 notes (2 scales × 12 notes).
 
 ### Scale Types
 
@@ -71,13 +82,19 @@ When transitioning from a C major scale ending on C to a G major scale:
 - Uses WebMIDI API for MIDI device integration
 - Implements custom scale engine for accurate scale generation
 - Supports enharmonic equivalents for proper musical notation
+- Features dynamic note slot generation based on serving style
+- Includes sophisticated economy system with multipliers
+- Maintains square aspect ratio for note slots across screen sizes
 
 ## Future Enhancements
 
 - Sound generation for users without MIDI keyboards
 - Additional scale types (pentatonic, blues, modes)
 - Chord progression practice
-- Customizable difficulty settings
+- Customizable tempo settings
+- Practice mode with note names displayed
+- Statistics tracking and performance analytics
+- Achievement system with badges and rewards
 
 ## Update Log
 
