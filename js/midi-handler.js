@@ -14,10 +14,17 @@ class MidiHandler {
         // Set initial UI state
         this.updateStatus('Initializing...', false);
         
+        // Track connection state and attempts
+        this.isConnected = false;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 3;
+        this.reconnectTimer = null;
+        
         // Make the MIDI light clickable for reconnection
         if (this.statusElement) {
             this.statusElement.addEventListener('click', () => {
                 this.updateStatus('Connecting...', false);
+                this.reconnectAttempts = 0; // Reset counter on manual reconnect
                 this.setupMIDI();
             });
         }
@@ -27,6 +34,9 @@ class MidiHandler {
         
         // Try to connect to MIDI
         this.setupMIDI();
+        
+        // Set up periodic connection check (every 30 seconds)
+        setInterval(() => this.checkMIDIConnection(), 30000);
     }
     
     /**
@@ -50,8 +60,27 @@ class MidiHandler {
                 
                 if (inputs.length === 0) {
                     this.updateStatus('No MIDI devices found', false);
+                    this.isConnected = false;
+                    
+                    // Schedule a reconnection attempt if we haven't exceeded the limit
+                    if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                        this.reconnectAttempts++;
+                        console.log(`MIDI reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+                        
+                        // Clear any existing timer
+                        if (this.reconnectTimer) {
+                            clearTimeout(this.reconnectTimer);
+                        }
+                        
+                        // Schedule a reconnection attempt
+                        this.reconnectTimer = setTimeout(() => this.setupMIDI(), 5000);
+                    }
                     return;
                 }
+                
+                // Reset reconnection attempts on successful connection
+                this.reconnectAttempts = 0;
+                this.isConnected = true;
                 
                 // Connect to all available inputs (not just the first one)
                 inputs.forEach(input => {
@@ -65,6 +94,8 @@ class MidiHandler {
                 access.onstatechange = (event) => {
                     if (event.port.type === 'input') {
                         if (event.port.state === 'connected') {
+                            this.isConnected = true;
+                            this.reconnectAttempts = 0; // Reset counter on successful connection
                             this.updateStatus(`Connected to ${event.port.name}`, true);
                             event.port.onmidimessage = this.handleMIDIMessage.bind(this);
                         } else if (event.port.state === 'disconnected') {
@@ -72,15 +103,30 @@ class MidiHandler {
                             const remainingInputs = Array.from(this.midiAccess.inputs.values());
                             if (remainingInputs.length > 0) {
                                 this.updateStatus(`Connected to ${remainingInputs[0].name}`, true);
+                                this.isConnected = true;
                             } else {
                                 this.updateStatus('MIDI device disconnected', false);
+                                this.isConnected = false;
+                                // Try to reconnect after a short delay
+                                setTimeout(() => this.setupMIDI(), 2000);
                             }
                         }
                     }
                 };
             })
             .catch(error => {
+                console.error('MIDI access error:', error);
                 this.updateStatus('Failed to access MIDI', false);
+                this.isConnected = false;
+                
+                // Schedule a reconnection attempt if we haven't exceeded the limit
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    console.log(`MIDI reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
+                    
+                    // Schedule a reconnection attempt
+                    this.reconnectTimer = setTimeout(() => this.setupMIDI(), 5000);
+                }
             });
     }
     
@@ -181,6 +227,31 @@ class MidiHandler {
         if (this.statusElement) {
             // Keep the circle symbol (●) but just change the class for color
             this.statusElement.className = connected ? 'midi-light clickable connected' : 'midi-light clickable disconnected';
+        }
+        // Log status changes to console for debugging
+        console.log(`MIDI Status: ${message} (${connected ? 'connected' : 'disconnected'})`);
+    }
+    
+    /**
+     * Check if MIDI connection is still active and try to reconnect if needed
+     */
+    checkMIDIConnection() {
+        // Skip if we're already connected or actively trying to reconnect
+        if (this.isConnected || this.reconnectAttempts > 0) {
+            return;
+        }
+        
+        // Check if we have MIDI access but no inputs
+        if (this.midiAccess) {
+            const inputs = Array.from(this.midiAccess.inputs.values());
+            if (inputs.length === 0) {
+                console.log('Periodic check: No MIDI devices found, attempting reconnection');
+                this.setupMIDI();
+            }
+        } else {
+            // No MIDI access at all, try to set up again
+            console.log('Periodic check: No MIDI access, attempting reconnection');
+            this.setupMIDI();
         }
     }
 }

@@ -20,8 +20,8 @@ body:not(.cafe-opened):not(.cafe-opening) .order-board {
     transform: translate(-50%, -50%) scale(0.8);
     z-index: 10;
     margin: 0;
-    width: 400px;
-    max-width: 400px;
+    width: min(400px, 90%);
+    max-width: 90%;
     transition: none !important; /* Prevent any transition on initial load */
 }
 
@@ -121,6 +121,7 @@ body {
 /* Main Cafe Layout */
 .cafe-main {
     padding: 2rem;
+    width: 95%;
     max-width: 1400px;
     margin: 0 auto;
     transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -129,6 +130,98 @@ body {
 /* Add top margin when cafe is opened to account for fixed order board */
 body.cafe-opened .cafe-main {
     margin-top: 280px; /* Approximate height of order board + padding */
+}
+
+/* Responsive adjustments */
+@media (min-width: 1600px) {
+    .cafe-main, .order-board, .cooking-station {
+        max-width: 1600px;
+    }
+    
+    .note-slot {
+        max-width: 80px;
+        height: 60px;
+    }
+    
+    .order-ticket {
+        max-width: 380px;
+    }
+    
+    .cafe-logo h1 {
+        font-size: 2.5rem;
+    }
+    
+    .station-header h2,
+    .order-board h2 {
+        font-size: 1.8rem;
+    }
+    
+    .recipe-display h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .cafe-main {
+        padding: 1rem;
+    }
+    
+    .order-board, .cooking-station {
+        padding: 1rem;
+        width: 98%;
+    }
+    
+    body.cafe-opened .cafe-main {
+        margin-top: 320px; /* Increased for smaller screens */
+    }
+    
+    .note-slot {
+        min-width: 30px;
+        height: 40px;
+    }
+    
+    .order-ticket {
+        flex: 1 1 230px;
+    }
+    
+    .cafe-logo h1 {
+        font-size: 1.7rem;
+    }
+    
+    .cafe-logo p {
+        font-size: 0.8rem;
+    }
+    
+    .station-header h2,
+    .order-board h2 {
+        font-size: 1.3rem;
+    }
+    
+    .recipe-display h3 {
+        font-size: 1.1rem;
+    }
+    
+    .dish-list li {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .cafe-header {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0.75rem;
+    }
+    
+    body.cafe-opened .cafe-main {
+        margin-top: 360px; /* Increased for mobile screens */
+    }
+    
+    .note-slot {
+        min-width: 25px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
 }
 
 /* Order Board */
@@ -140,6 +233,7 @@ body.cafe-opened .cafe-main {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(210, 105, 30, 0.2);
     margin: 2rem auto;
+    width: 95%;
     max-width: 1400px;
     overflow: visible;
     transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -153,8 +247,8 @@ body.cafe-closed .order-board {
     transform: translate(-50%, -50%) scale(0.8);
     z-index: 10;
     margin: 0;
-    width: 400px;
-    max-width: 400px;
+    width: min(400px, 90%);
+    max-width: 90%;
     transition: all 1.0s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Re-enable transitions for cafe opening */
 }
 
@@ -175,7 +269,7 @@ body.cafe-opened .order-board {
     transform: translateX(-50%) scale(1);
     z-index: 10;
     margin: 0;
-    width: 100%;
+    width: 95%;
     max-width: 1400px;
 }
 
@@ -255,6 +349,7 @@ body.cafe-opened .cooking-station {
     overflow: visible;
     min-height: 180px; /* Reserve space for 4 orders */
     align-items: flex-start;
+    width: 100%;
 }
 
 .cafe-opening {
@@ -364,6 +459,8 @@ body.cafe-opened .cooking-station {
     width: 280px;
     min-height: 150px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex: 1 1 280px;
+    max-width: 350px;
 }
 
 .order-ticket:not(.initial-load):not(.initial-slide-in) {
@@ -415,6 +512,9 @@ body.cafe-opened .cooking-station {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
 .ticket-header h3 {
@@ -428,14 +528,20 @@ body.cafe-opened .cooking-station {
 }
 
 .dish-list {
-    list-style: none;
+    list-style-type: none;
     margin-bottom: 0.75rem;
+    width: 100%;
+    word-wrap: break-word;
 }
 
 .dish-list li {
-    padding: 0.25rem 0;
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
     color: #5D4037;
-    font-weight: 500;
+    width: 100%;
+    overflow-wrap: break-word;
 }
 
 .ticket-footer {
@@ -456,6 +562,9 @@ body.cafe-opened .cooking-station {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: capitalize;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
 }
 
 .direction-badge.ascending {
@@ -464,11 +573,15 @@ body.cafe-opened .cooking-station {
     border: 1px solid #2B506E; /* Darker border for definition */
 }
 
+
+
 .direction-badge.descending {
     background: #4A7043; /* Olive sage */
     color: #FFFFFF; /* White text for better contrast */
     border: 1px solid #2A4023; /* Darker border for definition */
 }
+
+
 
 .new-order-btn {
     width: 100%;
@@ -498,12 +611,16 @@ body.cafe-opened .cooking-station {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 2px solid rgba(210, 105, 30, 0.2);
     transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 95%;
+    max-width: 1400px;
+    margin: 0 auto;
     /* Hide by default - only show when explicitly made visible */
     display: none !important; /* Use display none for complete hiding */
 }
 
 .station-header {
     margin-bottom: 1.5rem;
+    width: 100%;
 }
 
 .station-header h2 {
@@ -523,6 +640,9 @@ body.cafe-opened .cooking-station {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
 }
 
 .cooking-order h3 {
@@ -532,6 +652,7 @@ body.cafe-opened .cooking-station {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .cooking-order .dishes {
@@ -575,6 +696,7 @@ body.cafe-opened .cooking-station {
 /* Recipe Display */
 .recipe-display {
     margin-bottom: 1.5rem;
+    width: 100%;
 }
 
 .recipe-display h3 {
@@ -588,12 +710,15 @@ body.cafe-opened .cooking-station {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
+    max-width: 100%;
 }
 
 .note-row {
     display: flex;
     gap: 0.5rem;
     justify-content: center;
+    width: 100%;
 }
 
 .complex-row, .gourmet-row {
@@ -607,19 +732,20 @@ body[data-difficulty="boss"] .gourmet-row {
 }
 
 .note-slot {
-    width: 50px;
-    height: 50px;
-    background: #FFFAF0;
+    flex: 1;
+    max-width: 70px;
+    min-width: 40px;
+    aspect-ratio: 1/1;
+    background: #FFF8DC;
     border: 2px solid #DEB887;
-    border-radius: 12px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 1rem;
-    color: #5D4037;
-    transition: all 0.3s ease;
+    color: #8B4513;
     position: relative;
+    transition: all 0.3s ease;
 }
 
 .note-slot.expected {
@@ -652,6 +778,7 @@ body[data-difficulty="boss"] .gourmet-row {
 /* Cooking Progress */
 .cooking-progress {
     text-align: center;
+    width: 100%;
 }
 
 .progress-bar {
@@ -902,18 +1029,20 @@ display: none;
 }
 
 .perfect-stamp {
-    background: linear-gradient(45deg, #FF6B35, #F7931E);
+    background: radial-gradient(circle, #FFD700 0%, #FF6B35 60%, #F7931E 100%);
     color: white;
     padding: 0.75rem 1.5rem;
     border-radius: 50%;
     font-size: 1.2rem;
-    font-weight: 900;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 2px;
-    border: 4px solid #FF6B35;
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4), 0 0 30px #FFC107;
-    animation: stampAppear 0.8s ease-out, shineEffect 2s infinite;
-    transform: rotate(20deg);
+    font-family: 'Fredoka One', 'Comic Sans MS', cursive, fantasy;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 255, 255, 0.7);
+    border: none;
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4), 0 0 30px #FFC107, inset 0 0 20px rgba(255, 255, 255, 0.5);
+    animation: stampAppear 0.8s ease-out, magicalShine 3s infinite, textGlow 2s infinite alternate;
+    transform: rotate(15deg);
     position: absolute;
     top: -30px;
     right: 30px;
@@ -1142,17 +1271,30 @@ display: none;
 
 @keyframes stampAppear {
     0% {
-        transform: rotate(20deg) scale(0);
+        transform: rotate(15deg) scale(0);
         opacity: 0;
     }
     50% {
-        transform: rotate(20deg) scale(1.2);
+        transform: rotate(15deg) scale(1.2);
         opacity: 0.8;
     }
     100% {
-        transform: rotate(20deg) scale(1);
+        transform: rotate(15deg) scale(1);
         opacity: 1;
     }
+}
+
+@keyframes magicalShine {
+    0% { box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4), 0 0 30px #FFC107, inset 0 0 20px rgba(255, 255, 255, 0.3); }
+    25% { box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5), 0 0 35px #FFC107, inset 0 0 25px rgba(255, 255, 255, 0.5); }
+    50% { box-shadow: 0 4px 25px rgba(255, 107, 53, 0.6), 0 0 40px #FFC107, inset 0 0 30px rgba(255, 255, 255, 0.7); }
+    75% { box-shadow: 0 4px 20px rgba(255, 107, 53, 0.5), 0 0 35px #FFC107, inset 0 0 25px rgba(255, 255, 255, 0.5); }
+    100% { box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4), 0 0 30px #FFC107, inset 0 0 20px rgba(255, 255, 255, 0.3); }
+}
+
+@keyframes textGlow {
+    0% { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 5px rgba(255, 255, 255, 0.5); }
+    100% { text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 215, 0, 0.7); }
 }
 
 @keyframes shineEffect {

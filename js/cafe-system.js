@@ -200,9 +200,17 @@ class CafeSystem {
             'Taylor', 'Jamie', 'Sage', 'River', 'Skylar', 'Rowan', 'Phoenix'
         ];
         
+        const honorifics = [
+            'Mr.', 'Ms.', 'Mrs.', 'Miss', 'Dr.', 'Prof.'
+        ];
+        
+        // Randomly select a name and honorific
+        const randomName = customerNames[Math.floor(Math.random() * customerNames.length)];
+        const randomHonorific = honorifics[Math.floor(Math.random() * honorifics.length)];
+        
         const order = {
             id: Date.now() + Math.random(),
-            customerName: customerNames[Math.floor(Math.random() * customerNames.length)],
+            customerName: `${randomHonorific} ${randomName}`,
             complexity: complexity,
             dishes: [],
             totalSell: 0 // Will be calculated after dishes are added
@@ -723,7 +731,7 @@ class CafeSystem {
         ).join('');
         
         const direction = order.dishes[0]?.direction || 'ascending';
-        const directionIcon = direction === 'ascending' ? '↗️' : '↙️';
+        const directionIcon = direction === 'ascending' ? '🪽' : '🍂';
         
         ticket.innerHTML = `
             <div class="ticket-header">
@@ -996,21 +1004,24 @@ class CafeSystem {
         
         const completionMessage = document.getElementById('completion-message');
         
+        // Get the customer name from the current order
+        const customerName = this.currentOrder.customerName;
+        
         if (isPerfect) {
             // Show perfect message with stamp
             completionMessage.innerHTML = `
                 <div class="perfect-completion">
                     <div class="perfect-stamp">Perfect!</div>
-                    <p>Flawless execution! The customer was amazed!</p>
+                    <p>Flawless execution! ${customerName} was amazed!</p>
                 </div>
             `;
         } else {
             const messages = [
-                "Delicious! The customer loved it!",
-                "Great job! That was exactly what they ordered!",
-                "Amazing! The customer left a great review!",
-                "Wonderful! They said it was the best they've ever had!",
-                "Excellent! The customer was so happy!"
+                `Delicious! ${customerName} loved it!`,
+                `Great job! That was exactly what ${customerName} ordered!`,
+                `Amazing! ${customerName} left a great review!`,
+                `Wonderful! ${customerName} said it was the best they've ever had!`,
+                `Excellent! ${customerName} was so happy!`
             ];
             completionMessage.innerHTML = `<p>${messages[Math.floor(Math.random() * messages.length)]}</p>`;
         }
@@ -1067,7 +1078,7 @@ class CafeSystem {
         ).join(', ');
         
         const direction = this.currentOrder.dishes[0]?.direction || 'ascending';
-        const directionIcon = direction === 'ascending' ? '↗️' : '↙️';
+        const directionIcon = direction === 'ascending' ? '🪽' : '🍂';
         
         this.currentOrderElement.innerHTML = `
             <div class="cooking-order">

@@ -79,6 +79,21 @@ When transitioning from a C major scale ending on C to a G major scale:
 - Chord progression practice
 - Customizable difficulty settings
 
+## Update Log
+
+### May 27, 2025
+
+#### UI Improvements
+- **Responsive Design**: Made the layout adaptive to different screen sizes using percentage-based widths and media queries
+- **Square Note Slots**: Implemented aspect-ratio property to maintain square proportions for note slots
+- **Direction Indicators**: Added Wing Emoji (🪽) for ascending scales and Falling Leaf Emoji (🍂) for descending scales
+- **Perfect Stamp Enhancement**: Added magical radial gradient effect with subtle shining animation
+- **Personalized Messages**: Added customer names with honorifics (Mr., Ms., Dr., etc.) in completion messages
+
+#### Technical Improvements
+- **MIDI Reconnection**: Enhanced MIDI handler with automatic reconnection attempts for better device reliability
+- **Animation Consistency**: Fixed angle inconsistency in the Perfect stamp animation
+
 ## Credits
 
 Developed by Tian Xing
